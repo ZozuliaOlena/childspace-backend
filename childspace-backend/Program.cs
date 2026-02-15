@@ -1,4 +1,8 @@
 using childspace_backend.Data;
+using childspace_backend.DbInitializer;
+using childspace_backend.Mappings;
+using childspace_backend.Models;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace childspace_backend
@@ -12,21 +16,35 @@ namespace childspace_backend
             builder.Services.AddDbContext<ChildSpaceDbContext>(options =>
                 options.UseSqlServer(builder.Configuration.GetConnectionString("ChildSpaceDbConnectionString")));
 
+            builder.Services.AddIdentity<User, IdentityRole<Guid>>()
+                .AddEntityFrameworkStores<ChildSpaceDbContext>()
+                .AddDefaultTokenProviders();
+
+            builder.Services.AddScoped<IDbInitializer, DbInitializer.DbInitializer>();
+
+            builder.Services.AddControllers();
+
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
-            builder.Services.AddAuthorization();
 
             var app = builder.Build();
 
-            if (app.Environment.IsDevelopment())
+            SeedDatabase();
+
+            void SeedDatabase()
             {
-                app.UseSwagger();
-                app.UseSwaggerUI();
+                using var scope = app.Services.CreateScope();
+                var dbInitializer = scope.ServiceProvider.GetRequiredService<IDbInitializer>();
+                dbInitializer.Initialize();
             }
 
-            app.UseHttpsRedirection();
+            app.UseSwagger();
+            app.UseSwaggerUI();
 
+            app.UseAuthentication();
             app.UseAuthorization();
+
+            app.MapControllers();
 
             app.Run();
         }

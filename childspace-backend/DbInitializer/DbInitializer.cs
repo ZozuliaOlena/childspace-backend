@@ -24,39 +24,53 @@ namespace childspace_backend.DbInitializer
 
         public void Initialize()
         {
-            try
-            {
-                if (_dbContext.Database.GetPendingMigrations().Any())
-                {
-                    _dbContext.Database.Migrate();
-                }
-            }
-            catch
-            {
-            }
+            if (_dbContext.Database.GetPendingMigrations().Any())
+                _dbContext.Database.Migrate();
 
-            if (_roleManager.RoleExistsAsync(StaticDetail.Role_SuperAdmin)
-                .GetAwaiter().GetResult())
-                return;
-
-            _roleManager.CreateAsync(new IdentityRole<Guid>(StaticDetail.Role_SuperAdmin)).GetAwaiter().GetResult();
-            _roleManager.CreateAsync(new IdentityRole<Guid>(StaticDetail.Role_CenterAdmin)).GetAwaiter().GetResult();
-            _roleManager.CreateAsync(new IdentityRole<Guid>(StaticDetail.Role_Teacher)).GetAwaiter().GetResult();
-            _roleManager.CreateAsync(new IdentityRole<Guid>(StaticDetail.Role_Parent)).GetAwaiter().GetResult();
-
-            var superAdmin = new User
-            {
-                Id = Guid.NewGuid(),
-                Email = "superadmin@childspace.com",
-                FirstName = "Super",
-                LastName = "Admin"
+            string[] roles = {
+                StaticDetail.Role_SuperAdmin,
+                StaticDetail.Role_CenterAdmin,
+                StaticDetail.Role_Teacher,
+                StaticDetail.Role_Parent
             };
 
-            _userManager.CreateAsync(superAdmin, "SuperAdmin123!")
+            foreach (var role in roles)
+            {
+                if (!_roleManager.RoleExistsAsync(role).GetAwaiter().GetResult())
+                {
+                    _roleManager.CreateAsync(new IdentityRole<Guid>(role)).GetAwaiter().GetResult();
+                }
+            }
+
+            var user = _userManager.FindByEmailAsync("superadmin@childspace.com")
                 .GetAwaiter().GetResult();
 
-            _userManager.AddToRoleAsync(superAdmin, StaticDetail.Role_SuperAdmin)
-                .GetAwaiter().GetResult();
+            if (user == null)
+            {
+                var superAdmin = new User
+                {
+                    Id = Guid.NewGuid(),
+                    Email = "superadmin@childspace.com",
+                    UserName = "superadmin@childspace.com",
+                    FirstName = "Super",
+                    LastName = "Admin",
+                    EmailConfirmed = true
+                };
+
+                var result = _userManager.CreateAsync(superAdmin, "SuperAdmin123!")
+                    .GetAwaiter().GetResult();
+
+                if (result.Succeeded)
+                {
+                    _userManager.AddToRoleAsync(superAdmin, StaticDetail.Role_SuperAdmin)
+                        .GetAwaiter().GetResult();
+                }
+                else
+                {
+                    throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+                }
+            }
         }
+
     }
 }
