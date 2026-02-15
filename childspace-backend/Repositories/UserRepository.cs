@@ -13,15 +13,18 @@ namespace childspace_backend.Repositories
         private readonly UserManager<User> _userManager;
         private readonly ChildSpaceDbContext _context;
         private readonly IMapper _mapper;
+        private readonly RoleManager<IdentityRole<Guid>> _roleManager;
 
         public UserRepository(
             UserManager<User> userManager,
             ChildSpaceDbContext context,
-            IMapper mapper)
+            IMapper mapper,
+            RoleManager<IdentityRole<Guid>> roleManager)
         {
             _userManager = userManager;
             _context = context;
             _mapper = mapper;
+            _roleManager = roleManager;
         }
 
         public async Task<IEnumerable<UserDto>> GetAllAsync()
@@ -98,6 +101,26 @@ namespace childspace_backend.Repositories
             var result = await _userManager.DeleteAsync(user);
 
             return result.Succeeded;
+        }
+
+        public async Task<IList<string>> GetAllRolesAsync()
+        {
+            return await _roleManager.Roles.Select(r => r.Name).ToListAsync();
+        }
+
+        public async Task<IList<string>> GetUserRolesAsync(User user)
+        {
+            return await _userManager.GetRolesAsync(user);
+        }
+
+        public async Task<IdentityResult> AddToRolesAsync(User user, IEnumerable<string> roles)
+        {
+            return await _userManager.AddToRolesAsync(user, roles);
+        }
+
+        public async Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles)
+        {
+            return await _userManager.RemoveFromRolesAsync(user, roles);
         }
     }
 }

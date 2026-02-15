@@ -85,5 +85,50 @@ namespace childspace_backend.Controllers
 
             return Ok(new { message = "User deleted successfully" });
         }
+
+        [HttpGet("roles")]
+        public async Task<IActionResult> GetAllRoles()
+        {
+            var roles = await _repository.GetAllRolesAsync();
+            return Ok(roles);
+        }
+
+        [HttpGet("{id:guid}/roles")]
+        public async Task<IActionResult> GetUserRoles(Guid id)
+        {
+            var userEntity = await _userManager.FindByIdAsync(id.ToString());
+            if (userEntity == null) return NotFound();
+
+            var roles = await _repository.GetUserRolesAsync(userEntity);
+            return Ok(roles);
+        }
+
+        [HttpPost("{id:guid}/roles")]
+        public async Task<IActionResult> AddRoles(Guid id, [FromBody] string[] roles)
+        {
+            var userEntity = await _userManager.FindByIdAsync(id.ToString());
+            if (userEntity == null) return NotFound();
+
+            var result = await _repository.AddToRolesAsync(userEntity, roles);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Roles added successfully" });
+        }
+
+        [HttpDelete("{id:guid}/roles")]
+        public async Task<IActionResult> RemoveRoles(Guid id, [FromBody] string[] roles)
+        {
+            var userEntity = await _userManager.FindByIdAsync(id.ToString());
+            if (userEntity == null) return NotFound();
+
+            var result = await _repository.RemoveFromRolesAsync(userEntity, roles);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Roles removed successfully" });
+        }
     }
 }
