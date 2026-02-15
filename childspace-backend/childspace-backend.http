@@ -1,0 +1,6 @@
+@childspace_backend_HostAddress = http://localhost:5264
+
+GET {{childspace_backend_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
