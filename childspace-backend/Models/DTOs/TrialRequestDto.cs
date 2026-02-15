@@ -1,10 +1,13 @@
-﻿namespace childspace_backend.Models.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace childspace_backend.Models.DTOs
 {
     public class TrialRequestDto
     {
         public Guid Id { get; set; }
 
         public Guid CenterId { get; set; }
+        [JsonIgnore]
         public CenterDto Center { get; set; }
 
         public string ParentName { get; set; }

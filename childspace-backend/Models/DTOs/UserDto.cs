@@ -1,4 +1,6 @@
-﻿namespace childspace_backend.Models.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace childspace_backend.Models.DTOs
 {
     public class UserDto
     {
@@ -10,7 +12,9 @@
         public Guid? CenterId { get; set; }
         public string CenterName { get; set; }
 
+        [JsonIgnore]
         public List<ChildDto> Children { get; set; }
+        [JsonIgnore]
         public List<GroupDto> TeachingGroups { get; set; }
     }
 }

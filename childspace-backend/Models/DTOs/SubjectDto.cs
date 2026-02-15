@@ -1,4 +1,6 @@
-﻿namespace childspace_backend.Models.DTOs
+﻿using System.Text.Json.Serialization;
+
+namespace childspace_backend.Models.DTOs
 {
     public class SubjectDto
     {
@@ -7,6 +9,7 @@
         public string? Description { get; set; }
 
         public Guid CenterId { get; set; }
+        [JsonIgnore]
         public CenterDto Center { get; set; }
     }
 }
