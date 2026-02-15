@@ -1,10 +1,12 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using childspace_backend.Models;
 using childspace_backend.Models.Enums;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 
 namespace childspace_backend.Data
 {
-    public class ChildSpaceDbContext : DbContext
+    public class ChildSpaceDbContext : IdentityDbContext<User, IdentityRole<Guid>, Guid>
     {
         public ChildSpaceDbContext(DbContextOptions<ChildSpaceDbContext> options)
             : base(options)
@@ -13,7 +15,6 @@ namespace childspace_backend.Data
 
         public DbSet<Center> Centers { get; set; }
         public DbSet<TrialRequest> TrialRequests { get; set; }
-        public DbSet<User> Users { get; set; }
         public DbSet<Child> Children { get; set; }
         public DbSet<Group> Groups { get; set; }
         public DbSet<GroupChild> GroupChildren { get; set; }
@@ -28,9 +29,6 @@ namespace childspace_backend.Data
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<User>()
-                .Property(u => u.Role).HasConversion<string>();
 
             modelBuilder.Entity<Center>()
                 .Property(c => c.SubscriptionStatus).HasConversion<string>();
