@@ -1,0 +1,103 @@
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using childspace_backend.Data;
+using childspace_backend.Models;
+using childspace_backend.Models.DTOs;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+
+namespace childspace_backend.Repositories
+{
+    public class UserRepository : IUserRepository
+    {
+        private readonly UserManager<User> _userManager;
+        private readonly ChildSpaceDbContext _context;
+        private readonly IMapper _mapper;
+
+        public UserRepository(
+            UserManager<User> userManager,
+            ChildSpaceDbContext context,
+            IMapper mapper)
+        {
+            _userManager = userManager;
+            _context = context;
+            _mapper = mapper;
+        }
+
+        public async Task<IEnumerable<UserDto>> GetAllAsync()
+        {
+            var users = await _context.Users
+                .Include(u => u.Center)
+                .Include(u => u.Children)
+                .Include(u => u.TeachingGroups)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<UserDto>>(users);
+        }
+
+        public async Task<UserDto> GetByIdAsync(Guid id)
+        {
+            var user = await _context.Users
+                .Include(u => u.Center)
+                .Include(u => u.Children)
+                .Include(u => u.TeachingGroups)
+                .FirstOrDefaultAsync(u => u.Id == id);
+
+            return user == null ? null : _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<UserDto> CreateAsync(UserDto dto, string password)
+        {
+            var user = new User
+            {
+                Id = Guid.NewGuid(),
+                Email = dto.Email,
+                UserName = dto.Email,
+                FirstName = dto.FirstName,
+                LastName = dto.LastName,
+                CenterId = dto.CenterId
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+
+            if (!result.Succeeded)
+            {
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+            }
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<UserDto> UpdateAsync(Guid id, UserUpdateRequest dto)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null)
+                return null;
+
+            user.Email = dto.Email;
+            user.UserName = dto.Email;
+            user.FirstName = dto.FirstName;
+            user.LastName = dto.LastName;
+            user.CenterId = dto.CenterId;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            return _mapper.Map<UserDto>(user);
+        }
+
+        public async Task<bool> DeleteAsync(Guid id)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+
+            if (user == null)
+                return false;
+
+            var result = await _userManager.DeleteAsync(user);
+
+            return result.Succeeded;
+        }
+    }
+}

@@ -23,6 +23,10 @@ namespace childspace_backend
 
             builder.Services.AddScoped<IDbInitializer, DbInitializer.DbInitializer>();
             builder.Services.AddScoped<ICloudinaryRepository, CloudinaryRepository>();
+            builder.Services.AddScoped<IUserRepository, UserRepository>();
+            builder.Services.AddScoped<ICenterRepository, CenterRepository>();
+
+            builder.Services.AddAutoMapper(typeof(MappingProfile));
 
             builder.Services.AddControllers();
 
