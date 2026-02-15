@@ -2,6 +2,7 @@ using childspace_backend.Data;
 using childspace_backend.DbInitializer;
 using childspace_backend.Mappings;
 using childspace_backend.Models;
+using childspace_backend.Repositories;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -21,6 +22,7 @@ namespace childspace_backend
                 .AddDefaultTokenProviders();
 
             builder.Services.AddScoped<IDbInitializer, DbInitializer.DbInitializer>();
+            builder.Services.AddScoped<ICloudinaryRepository, CloudinaryRepository>();
 
             builder.Services.AddControllers();
 
