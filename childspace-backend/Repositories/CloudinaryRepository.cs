@@ -22,14 +22,17 @@ namespace childspace_backend.Repositories
 
         public async Task<FileUploadResultDto> UploadAsync(IFormFile file)
         {
-            if (file == null || file.Length == 0) return null;
+            if (file == null || file.Length == 0)
+                return null;
 
             using var stream = file.OpenReadStream();
 
-            var uploadParams = new ImageUploadParams
+            var uploadParams = new AutoUploadParams
             {
                 File = new FileDescription(file.FileName, stream),
-                Transformation = new Transformation().Quality("auto").FetchFormat("auto")
+                UseFilename = true,
+                UniqueFilename = true,
+                Overwrite = false
             };
 
             var uploadResult = await _cloudinary.UploadAsync(uploadParams);
@@ -48,9 +51,11 @@ namespace childspace_backend.Repositories
 
         public async Task<bool> DeleteAsync(string publicId)
         {
-            if (string.IsNullOrEmpty(publicId)) return false;
+            var deletionParams = new DeletionParams(publicId)
+            {
+                ResourceType = ResourceType.Auto
+            };
 
-            var deletionParams = new DeletionParams(publicId);
             var result = await _cloudinary.DestroyAsync(deletionParams);
 
             return result.Result == "ok";
