@@ -1,5 +1,6 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
+using childspace_backend.Models.Enums;
 
 namespace childspace_backend.Models
 {

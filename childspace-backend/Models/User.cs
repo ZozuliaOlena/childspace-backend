@@ -1,6 +1,7 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
 using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
+using childspace_backend.Models.Enums;
 
 namespace childspace_backend.Models
 {

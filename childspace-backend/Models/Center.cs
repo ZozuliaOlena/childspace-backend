@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using childspace_backend.Models.Enums;
+using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace childspace_backend.Models
