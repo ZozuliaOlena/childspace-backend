@@ -5,7 +5,7 @@ namespace childspace_backend.Models
     public class Chat
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         public string? Name { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

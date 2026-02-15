@@ -6,9 +6,9 @@ namespace childspace_backend.Models
     public class Message
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public int UserChatId { get; set; }
+        public Guid UserChatId { get; set; }
         [ForeignKey("UserChatId")]
         public virtual UserChat UserChat { get; set; }
 

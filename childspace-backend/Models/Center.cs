@@ -7,7 +7,7 @@ namespace childspace_backend.Models
     public class Center
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
         [Required]
         [MaxLength(100)]

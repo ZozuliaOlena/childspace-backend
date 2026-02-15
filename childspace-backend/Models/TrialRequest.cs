@@ -6,9 +6,9 @@ namespace childspace_backend.Models
     public class TrialRequest
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public int CenterId { get; set; }
+        public Guid CenterId { get; set; }
         [ForeignKey("CenterId")]
         public virtual Center Center { get; set; }
 
@@ -16,7 +16,7 @@ namespace childspace_backend.Models
         public string Phone { get; set; }
         public string Email { get; set; }
         public string ChildName { get; set; }
-        public int ChildAge { get; set; }
+        public Guid ChildAge { get; set; }
         public string? Comment { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

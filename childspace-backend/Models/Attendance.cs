@@ -7,13 +7,13 @@ namespace childspace_backend.Models
     public class Attendance
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public int LessonId { get; set; }
+        public Guid LessonId { get; set; }
         [ForeignKey("LessonId")]
         public virtual Schedule Lesson { get; set; }
 
-        public int ChildId { get; set; }
+        public Guid ChildId { get; set; }
         [ForeignKey("ChildId")]
         public virtual Child Child { get; set; }
 

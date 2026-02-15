@@ -1,30 +1,16 @@
 ﻿using System.ComponentModel.DataAnnotations.Schema;
-using System.ComponentModel.DataAnnotations;
-using System.Text.RegularExpressions;
-using childspace_backend.Models.Enums;
+using Microsoft.AspNetCore.Identity;
 
 namespace childspace_backend.Models
 {
-    public class User
+    public class User : IdentityUser<Guid>
     {
-        [Key]
-        public int Id { get; set; }
-
-        public int? CenterId { get; set; }
+        public Guid? CenterId { get; set; }
         [ForeignKey("CenterId")]
         public virtual Center Center { get; set; }
 
-        [Required]
-        public string Email { get; set; }
-
-        [Required]
-        public string PasswordHash { get; set; }
-
-        public UserRole Role { get; set; }
-
         public string FirstName { get; set; }
         public string LastName { get; set; }
-        public string Phone { get; set; }
 
         public virtual ICollection<Child> Children { get; set; }
         public virtual ICollection<Group> TeachingGroups { get; set; }

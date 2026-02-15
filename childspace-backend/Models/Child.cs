@@ -6,13 +6,13 @@ namespace childspace_backend.Models
     public class Child
     {
         [Key]
-        public int Id { get; set; }
+        public Guid Id { get; set; } = Guid.NewGuid();
 
-        public int CenterId { get; set; }
+        public Guid CenterId { get; set; }
         [ForeignKey("CenterId")]
         public virtual Center Center { get; set; }
 
-        public int ParentId { get; set; }
+        public Guid ParentId { get; set; }
         [ForeignKey("ParentId")]
         public virtual User Parent { get; set; }
 
