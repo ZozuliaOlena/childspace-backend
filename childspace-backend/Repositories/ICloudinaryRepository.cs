@@ -5,7 +5,7 @@ namespace childspace_backend.Repositories
 {
     public interface ICloudinaryRepository
     {
-        Task<FileUploadResult> UploadAsync(IFormFile file);
+        Task<FileUploadResultDto> UploadAsync(IFormFile file);
 
         Task<bool> DeleteAsync(string publicId);
     }

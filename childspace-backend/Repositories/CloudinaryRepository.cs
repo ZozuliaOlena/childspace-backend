@@ -20,7 +20,7 @@ namespace childspace_backend.Repositories
             _cloudinary = new Cloudinary(account);
         }
 
-        public async Task<FileUploadResult> UploadAsync(IFormFile file)
+        public async Task<FileUploadResultDto> UploadAsync(IFormFile file)
         {
             if (file == null || file.Length == 0) return null;
 
@@ -36,7 +36,7 @@ namespace childspace_backend.Repositories
 
             if (uploadResult.StatusCode == System.Net.HttpStatusCode.OK)
             {
-                return new FileUploadResult
+                return new FileUploadResultDto
                 {
                     Url = uploadResult.SecureUrl.ToString(),
                     PublicId = uploadResult.PublicId
