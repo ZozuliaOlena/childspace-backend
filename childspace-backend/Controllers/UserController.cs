@@ -38,34 +38,21 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] UserCreateRequest dto)
+        public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
-            var user = new User
+            try
             {
-                Email = dto.Email,
-                UserName = dto.Email,
-                FirstName = dto.FirstName,
-                LastName = dto.LastName,
-                CenterId = dto.CenterId
-            };
-
-            var result = await _userManager.CreateAsync(user, dto.Password);
-
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
-
-            return Ok(new
+                var user = await _repository.CreateAsync(dto);
+                return Ok(user);
+            }
+            catch (Exception ex)
             {
-                user.Id,
-                user.Email,
-                user.FirstName,
-                user.LastName,
-                user.CenterId
-            });
+                return BadRequest(new { error = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateRequest dto)
+        public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto)
         {
             var user = await _repository.UpdateAsync(id, dto);
 

@@ -49,7 +49,7 @@ namespace childspace_backend.Repositories
             return user == null ? null : _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto> CreateAsync(UserDto dto, string password)
+        public async Task<UserDto> CreateAsync(UserCreateDto dto)
         {
             var user = new User
             {
@@ -61,17 +61,15 @@ namespace childspace_backend.Repositories
                 CenterId = dto.CenterId
             };
 
-            var result = await _userManager.CreateAsync(user, password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
 
             if (!result.Succeeded)
-            {
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
-            }
 
             return _mapper.Map<UserDto>(user);
         }
 
-        public async Task<UserDto> UpdateAsync(Guid id, UserUpdateRequest dto)
+        public async Task<UserDto> UpdateAsync(Guid id, UserUpdateDto dto)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null)

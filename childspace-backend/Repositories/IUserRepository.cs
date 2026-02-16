@@ -9,9 +9,9 @@ namespace childspace_backend.Repositories
         Task<UserDto> GetByIdAsync(Guid id);
         Task<IEnumerable<UserDto>> GetAllAsync();
 
-        Task<UserDto> CreateAsync(UserDto dto, string password);
+        Task<UserDto> CreateAsync(UserCreateDto dto);
 
-        Task<UserDto> UpdateAsync(Guid id, UserUpdateRequest dto);
+        Task<UserDto> UpdateAsync(Guid id, UserUpdateDto dto);
 
         Task<bool> DeleteAsync(Guid id);
 
