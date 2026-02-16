@@ -35,6 +35,8 @@ namespace childspace_backend.Mappings
             CreateMap<Subject, SubjectDto>();
 
             CreateMap<UserChat, UserChatDto>();
+
+            CreateMap<Group, GroupDto>();
         }
     }
 }
