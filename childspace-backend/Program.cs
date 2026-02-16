@@ -26,6 +26,7 @@ namespace childspace_backend
             builder.Services.AddScoped<IUserRepository, UserRepository>();
             builder.Services.AddScoped<ICenterRepository, CenterRepository>();
             builder.Services.AddScoped<IChildRepository, ChildRepository>();
+            builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
