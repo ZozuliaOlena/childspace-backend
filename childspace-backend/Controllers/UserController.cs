@@ -1,6 +1,8 @@
 ﻿using childspace_backend.Models;
 using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,6 +10,7 @@ namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _repository;
@@ -119,6 +122,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost("{id:guid}/change-password")]
+        [Authorize]
         public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordDto dto)
         {
             var result = await _repository.ChangePasswordAsync(id, dto);
@@ -127,6 +131,19 @@ namespace childspace_backend.Controllers
                 return BadRequest(result.Errors);
 
             return Ok(new { message = "Password changed successfully" });
+        }
+
+        [HttpGet("me")]
+        [Authorize]
+        public async Task<IActionResult> GetMyProfile()
+        {
+            var userId = User.FindFirst("sub")?.Value;
+            if (userId == null) return Unauthorized();
+
+            var user = await _repository.GetByIdAsync(Guid.Parse(userId));
+            if (user == null) return NotFound();
+
+            return Ok(user);
         }
     }
 }
