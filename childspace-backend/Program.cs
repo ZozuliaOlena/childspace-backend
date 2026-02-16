@@ -33,6 +33,7 @@ namespace childspace_backend
             builder.Services.AddScoped<ITrialRequestRepository, TrialRequestRepository>();
             builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
             builder.Services.AddScoped<IGroupChildRepository, GroupChildRepository>();
+            builder.Services.AddScoped<IChatRepository, ChatRepository>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
