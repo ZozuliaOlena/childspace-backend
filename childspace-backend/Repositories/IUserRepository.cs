@@ -22,5 +22,7 @@ namespace childspace_backend.Repositories
         Task<IdentityResult> AddToRolesAsync(User user, IEnumerable<string> roles);
 
         Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles);
+
+        Task<IdentityResult> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
     }
 }

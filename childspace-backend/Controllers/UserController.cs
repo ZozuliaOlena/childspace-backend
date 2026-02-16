@@ -117,5 +117,16 @@ namespace childspace_backend.Controllers
 
             return Ok(new { message = "Roles removed successfully" });
         }
+
+        [HttpPost("{id:guid}/change-password")]
+        public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordDto dto)
+        {
+            var result = await _repository.ChangePasswordAsync(id, dto);
+
+            if (!result.Succeeded)
+                return BadRequest(result.Errors);
+
+            return Ok(new { message = "Password changed successfully" });
+        }
     }
 }

@@ -120,5 +120,18 @@ namespace childspace_backend.Repositories
         {
             return await _userManager.RemoveFromRolesAsync(user, roles);
         }
+
+        public async Task<IdentityResult> ChangePasswordAsync(Guid userId, ChangePasswordDto dto)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return IdentityResult.Failed(new IdentityError { Description = "User not found" });
+
+            if (dto.NewPassword != dto.ConfirmNewPassword)
+                return IdentityResult.Failed(new IdentityError { Description = "New password and confirmation do not match" });
+
+            var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
+            return result;
+        }
     }
 }
