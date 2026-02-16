@@ -1,11 +1,14 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
     public class SubjectController : ControllerBase
     {
         private readonly ISubjectRepository _repository;
@@ -65,6 +68,18 @@ namespace childspace_backend.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("my-center")]
+        [Authorize(Roles = StaticDetail.Role_Teacher)]
+        public async Task<ActionResult<IEnumerable<SubjectDto>>> GetMyCenterSubjects()
+        {
+            var userId = User.FindFirst("sub")?.Value;
+            if (userId == null) return Unauthorized();
+
+            var subjects = await _repository.GetSubjectsByTeacherAsync(Guid.Parse(userId));
+
+            return Ok(subjects);
         }
     }
 }

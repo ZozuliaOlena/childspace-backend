@@ -81,5 +81,20 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<IEnumerable<SubjectDto>> GetSubjectsByTeacherAsync(Guid teacherId)
+        {
+            var teacher = await _context.Users
+                .Include(u => u.Center)
+                .FirstOrDefaultAsync(u => u.Id == teacherId);
+
+            if (teacher == null || teacher.Center == null)
+                return Enumerable.Empty<SubjectDto>();
+
+            return await _context.Subjects
+                .Where(s => s.CenterId == teacher.Center.Id)
+                .Select(s => new SubjectDto { Id = s.Id, Name = s.Name })
+                .ToListAsync();
+        }
     }
 }
