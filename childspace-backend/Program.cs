@@ -31,6 +31,7 @@ namespace childspace_backend
             builder.Services.AddScoped<IMaterialRepository, MaterialRepository>();
             builder.Services.AddScoped<IScheduleRepository, ScheduleRepository>();
             builder.Services.AddScoped<ITrialRequestRepository, TrialRequestRepository>();
+            builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
 
