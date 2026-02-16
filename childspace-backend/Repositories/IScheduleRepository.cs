@@ -13,5 +13,9 @@ namespace childspace_backend.Repositories
         Task<ScheduleDto?> UpdateAsync(Guid id, ScheduleUpdateDto dto);
 
         Task<bool> DeleteAsync(Guid id);
+
+        Task<IEnumerable<ScheduleDto>> GetByTeacherIdAsync(Guid teacherId);
+
+        Task<IEnumerable<ScheduleDto>> GetByParentIdAsync(Guid parentId);
     }
 }

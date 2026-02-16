@@ -1,5 +1,7 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
@@ -16,6 +18,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetAll()
         {
             var schedules = await _repository.GetAllAsync();
@@ -23,6 +26,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<ScheduleDto>> GetById(Guid id)
         {
             var schedule = await _repository.GetByIdAsync(id);
@@ -34,6 +38,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<ScheduleDto>> Create(ScheduleCreateDto dto)
         {
             var created = await _repository.CreateAsync(dto);
@@ -46,6 +51,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<ScheduleDto>> Update(Guid id, ScheduleUpdateDto dto)
         {
             var updated = await _repository.UpdateAsync(id, dto);
@@ -57,6 +63,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var deleted = await _repository.DeleteAsync(id);
@@ -65,6 +72,24 @@ namespace childspace_backend.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("my")]
+        [Authorize(Roles = StaticDetail.Role_Teacher)]
+        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetMySchedule()
+        {
+            var teacherId = Guid.Parse(User.FindFirst("sub")?.Value!);
+            var schedules = await _repository.GetByTeacherIdAsync(teacherId);
+            return Ok(schedules);
+        }
+
+        [HttpGet("children")]
+        [Authorize(Roles = StaticDetail.Role_Parent)]
+        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetChildrenSchedule()
+        {
+            var parentId = Guid.Parse(User.FindFirst("sub")?.Value!);
+            var schedules = await _repository.GetByParentIdAsync(parentId);
+            return Ok(schedules);
         }
     }
 }
