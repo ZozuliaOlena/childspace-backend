@@ -5,12 +5,14 @@ using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+    [Authorize]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _repository;
@@ -23,6 +25,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> GetAll()
         {
             var users = await _repository.GetAllAsync();
@@ -30,6 +33,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Get(Guid id)
         {
             var user = await _repository.GetByIdAsync(id);
@@ -41,6 +45,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
             try
@@ -55,6 +60,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto)
         {
             var user = await _repository.UpdateAsync(id, dto);
@@ -66,6 +72,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _repository.DeleteAsync(id);
@@ -77,6 +84,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("roles")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> GetAllRoles()
         {
             var roles = await _repository.GetAllRolesAsync();
@@ -84,6 +92,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id:guid}/roles")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> GetUserRoles(Guid id)
         {
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
@@ -94,6 +103,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost("{id:guid}/roles")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> AddRoles(Guid id, [FromBody] string[] roles)
         {
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
@@ -108,6 +118,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id:guid}/roles")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> RemoveRoles(Guid id, [FromBody] string[] roles)
         {
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
@@ -137,11 +148,27 @@ namespace childspace_backend.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyProfile()
         {
-            var userId = User.FindFirst("sub")?.Value;
-            if (userId == null) return Unauthorized();
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
 
-            var user = await _repository.GetByIdAsync(Guid.Parse(userId));
-            if (user == null) return NotFound();
+            if (string.IsNullOrEmpty(userIdString))
+            {
+                var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
+                return Unauthorized(new
+                {
+                    message = "Token is valid, but User ID claim is missing.",
+                    availableClaims = claims
+                });
+            }
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return BadRequest(new { message = "Invalid User ID format." });
+            }
+
+            var user = await _repository.GetByIdAsync(userId);
+
+            if (user == null)
+                return NotFound(new { message = "User not found in database." });
 
             return Ok(user);
         }
