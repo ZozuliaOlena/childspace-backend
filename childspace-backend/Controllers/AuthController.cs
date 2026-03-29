@@ -55,6 +55,7 @@ namespace childspace_backend.Controllers
                 token = tokenString,
                 userId = user.Id,
                 email = user.Email,
+                firstName = user.FirstName,
                 roles
             });
         }
