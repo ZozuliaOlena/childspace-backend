@@ -12,6 +12,8 @@ namespace childspace_backend.Models.DTOs
         public Guid? CenterId { get; set; }
         public string CenterName { get; set; }
 
+        public IList<string> Roles { get; set; } = new List<string>();
+
         [JsonIgnore]
         public List<ChildDto> Children { get; set; }
         [JsonIgnore]

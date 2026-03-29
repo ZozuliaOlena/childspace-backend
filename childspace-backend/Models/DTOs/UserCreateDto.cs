@@ -9,5 +9,7 @@
         public Guid? CenterId { get; set; }
 
         public string Password { get; set; }
+
+        public IList<string> Roles { get; set; }
     }
 }

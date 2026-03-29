@@ -3,6 +3,7 @@ using AutoMapper.QueryableExtensions;
 using childspace_backend.Data;
 using childspace_backend.Models;
 using childspace_backend.Models.DTOs;
+using childspace_backend.Utility;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
@@ -66,7 +67,36 @@ namespace childspace_backend.Repositories
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            return _mapper.Map<UserDto>(user);
+            var validRoles = new List<string>
+            {
+                StaticDetail.Role_SuperAdmin,
+                StaticDetail.Role_CenterAdmin,
+                StaticDetail.Role_Teacher,
+                StaticDetail.Role_Parent
+            };
+
+            var assignedRoles = new List<string>();
+
+            if (dto.Roles != null && dto.Roles.Any())
+            {
+                var rolesToAdd = dto.Roles.Where(r => validRoles.Contains(r)).ToList();
+
+                if (rolesToAdd.Any())
+                {
+                    var roleResult = await _userManager.AddToRolesAsync(user, rolesToAdd);
+                    if (!roleResult.Succeeded)
+                    {
+                        throw new Exception("User created but no roles assigned: " +
+                            string.Join(", ", roleResult.Errors.Select(e => e.Description)));
+                    }
+                    assignedRoles = rolesToAdd;
+                }
+            }
+
+            var userDto = _mapper.Map<UserDto>(user);
+            userDto.Roles = assignedRoles;
+
+            return userDto;
         }
 
         public async Task<UserDto> UpdateAsync(Guid id, UserUpdateDto dto)
