@@ -36,7 +36,17 @@ namespace childspace_backend.Repositories
                 .Include(u => u.TeachingGroups)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<UserDto>>(users);
+            var userDtos = _mapper.Map<List<UserDto>>(users);
+
+            foreach (var dto in userDtos)
+            {
+                dto.Roles = await (from userRole in _context.UserRoles
+                                   join role in _context.Roles on userRole.RoleId equals role.Id
+                                   where userRole.UserId == dto.Id 
+                                   select role.Name).ToListAsync();
+            }
+
+            return userDtos;
         }
 
         public async Task<UserDto> GetByIdAsync(Guid id)
