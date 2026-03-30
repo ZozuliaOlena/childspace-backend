@@ -13,22 +13,32 @@ namespace childspace_backend.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Authorize]
-    public class UserController : ControllerBase
+    public class UserController : BaseController
     {
         private readonly IUserRepository _repository;
-        private readonly UserManager<User> _userManager;
 
         public UserController(IUserRepository repository, UserManager<User> userManager)
+            : base(userManager)
         {
             _repository = repository;
-            _userManager = userManager;
         }
 
         [HttpGet]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> GetAll()
         {
-            var users = await _repository.GetAllAsync();
+            Guid? filterCenterId = null;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _userManager.FindByIdAsync(userId);
+
+                filterCenterId = user?.CenterId;
+                if (filterCenterId == null) return Forbid();
+            }
+
+            var users = await _repository.GetAllAsync(filterCenterId);
             return Ok(users);
         }
 
@@ -36,18 +46,22 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            var user = await _repository.GetByIdAsync(id);
+            var targetUser = await _repository.GetByIdAsync(id);
+            if (targetUser == null) return NotFound();
 
-            if (user == null)
-                return NotFound();
+            if (!await CheckPermissionsAsync(targetUser.CenterId))
+                return Forbid();
 
-            return Ok(user);
+            return Ok(targetUser);
         }
 
         [HttpPost]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
+            if (!await CheckPermissionsAsync(dto.CenterId))
+                return Forbid();
+
             try
             {
                 var user = await _repository.CreateAsync(dto);
@@ -63,11 +77,16 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] UserUpdateDto dto)
         {
+            var existingUser = await _repository.GetByIdAsync(id);
+            if (existingUser == null) return NotFound();
+
+            if (!await CheckPermissionsAsync(existingUser.CenterId))
+                return Forbid();
+
+            if (!await CheckPermissionsAsync(dto.CenterId))
+                return Forbid();
+
             var user = await _repository.UpdateAsync(id, dto);
-
-            if (user == null)
-                return NotFound();
-
             return Ok(user);
         }
 
@@ -75,21 +94,16 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            var targetUser = await _userManager.FindByIdAsync(id.ToString());
+            if (targetUser == null) return NotFound();
+
+            if (!await CheckPermissionsAsync(targetUser.CenterId))
+                return Forbid();
+
             var result = await _repository.DeleteAsync(id);
-
-            if (!result)
-                return NotFound();
-
             return Ok(new { message = "User deleted successfully" });
         }
 
-        [HttpGet("roles")]
-        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
-        public async Task<IActionResult> GetAllRoles()
-        {
-            var roles = await _repository.GetAllRolesAsync();
-            return Ok(roles);
-        }
 
         [HttpGet("{id:guid}/roles")]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
@@ -97,6 +111,8 @@ namespace childspace_backend.Controllers
         {
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
+
+            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
 
             var roles = await _repository.GetUserRolesAsync(userEntity);
             return Ok(roles);
@@ -109,10 +125,10 @@ namespace childspace_backend.Controllers
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
 
-            var result = await _repository.AddToRolesAsync(userEntity, roles);
+            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
 
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            var result = await _repository.AddToRolesAsync(userEntity, roles);
+            if (!result.Succeeded) return BadRequest(result.Errors);
 
             return Ok(new { message = "Roles added successfully" });
         }
@@ -124,10 +140,10 @@ namespace childspace_backend.Controllers
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
 
-            var result = await _repository.RemoveFromRolesAsync(userEntity, roles);
+            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
 
-            if (!result.Succeeded)
-                return BadRequest(result.Errors);
+            var result = await _repository.RemoveFromRolesAsync(userEntity, roles);
+            if (!result.Succeeded) return BadRequest(result.Errors);
 
             return Ok(new { message = "Roles removed successfully" });
         }

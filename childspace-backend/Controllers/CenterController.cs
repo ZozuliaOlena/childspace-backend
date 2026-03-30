@@ -1,30 +1,57 @@
-﻿using childspace_backend.Models.DTOs;
+﻿using childspace_backend.Models;
+using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class CenterController : ControllerBase
+    [Authorize] 
+    public class CenterController : BaseController
     {
         private readonly ICenterRepository _repository;
 
-        public CenterController(ICenterRepository repository)
+        public CenterController(ICenterRepository repository, UserManager<User> userManager)
+            : base(userManager)
         {
             _repository = repository;
         }
 
         [HttpGet]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> GetAll()
         {
-            var centers = await _repository.GetAllAsync();
+            Guid? filterCenterId = null;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _userManager.FindByIdAsync(userId);
+
+                filterCenterId = user?.CenterId;
+
+                if (filterCenterId == null)
+                    return Forbid();
+            }
+
+            var centers = await _repository.GetAllAsync(filterCenterId);
             return Ok(centers);
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Get(Guid id)
         {
+            if (!await CheckPermissionsAsync(id))
+            {
+                return Forbid();
+            }
+
             var center = await _repository.GetByIdAsync(id);
             if (center == null)
                 return NotFound(new { message = "Center not found" });
@@ -33,6 +60,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = StaticDetail.Role_SuperAdmin)]
         public async Task<IActionResult> Create([FromBody] CenterCreateDto dto)
         {
             if (!ModelState.IsValid)
@@ -43,8 +71,14 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CenterUpdateDto dto)
         {
+            if (!await CheckPermissionsAsync(id))
+            {
+                return Forbid();
+            }
+
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
@@ -56,6 +90,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id}")]
+        [Authorize(Roles = StaticDetail.Role_SuperAdmin)]
         public async Task<IActionResult> Delete(Guid id)
         {
             var result = await _repository.DeleteAsync(id);

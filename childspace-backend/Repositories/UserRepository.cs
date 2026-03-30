@@ -28,21 +28,27 @@ namespace childspace_backend.Repositories
             _roleManager = roleManager;
         }
 
-        public async Task<IEnumerable<UserDto>> GetAllAsync()
+        public async Task<IEnumerable<UserDto>> GetAllAsync(Guid? centerId = null)
         {
-            var users = await _context.Users
+            var query = _context.Users
                 .Include(u => u.Center)
                 .Include(u => u.Children)
                 .Include(u => u.TeachingGroups)
-                .ToListAsync();
+                .AsQueryable();
 
+            if (centerId.HasValue)
+            {
+                query = query.Where(u => u.CenterId == centerId.Value);
+            }
+
+            var users = await query.ToListAsync();
             var userDtos = _mapper.Map<List<UserDto>>(users);
 
             foreach (var dto in userDtos)
             {
                 dto.Roles = await (from userRole in _context.UserRoles
                                    join role in _context.Roles on userRole.RoleId equals role.Id
-                                   where userRole.UserId == dto.Id 
+                                   where userRole.UserId == dto.Id
                                    select role.Name).ToListAsync();
             }
 
@@ -106,6 +112,18 @@ namespace childspace_backend.Repositories
             var userDto = _mapper.Map<UserDto>(user);
             userDto.Roles = assignedRoles;
 
+            if (user.CenterId.HasValue)
+            {
+                var center = await _context.Centers
+                    .AsNoTracking() 
+                    .FirstOrDefaultAsync(c => c.Id == user.CenterId.Value);
+
+                if (center != null)
+                {
+                    userDto.CenterName = center.Name;
+                }
+            }
+
             return userDto;
         }
 
@@ -126,7 +144,7 @@ namespace childspace_backend.Repositories
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
-            return _mapper.Map<UserDto>(user);
+            return await GetByIdAsync(id);
         }
 
         public async Task<bool> DeleteAsync(Guid id)

@@ -7,7 +7,7 @@ namespace childspace_backend.Repositories
     public interface IUserRepository
     {
         Task<UserDto> GetByIdAsync(Guid id);
-        Task<IEnumerable<UserDto>> GetAllAsync();
+        Task<IEnumerable<UserDto>> GetAllAsync(Guid? centerId = null);
 
         Task<UserDto> CreateAsync(UserCreateDto dto);
 
