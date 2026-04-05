@@ -1,5 +1,6 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -81,6 +82,30 @@ namespace childspace_backend.Controllers
             {
                 return BadRequest(new { message = ex.Message });
             }
+        }
+
+        [HttpPost("{chatId:guid}/participants/{userId:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<IActionResult> AddParticipant(Guid chatId, Guid userId)
+        {
+            var result = await _repository.AddParticipantAsync(chatId, userId);
+
+            if (!result)
+                return BadRequest(new { message = "Не вдалося додати користувача (чат або користувач не знайдено)" });
+
+            return Ok(new { message = "Користувача успішно додано до чату" });
+        }
+
+        [HttpDelete("{chatId:guid}/participants/{userId:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<IActionResult> RemoveParticipant(Guid chatId, Guid userId)
+        {
+            var result = await _repository.RemoveParticipantAsync(chatId, userId);
+
+            if (!result)
+                return NotFound(new { message = "Користувача не знайдено в цьому чаті" });
+
+            return Ok(new { message = "Користувача успішно видалено з чату" });
         }
     }
 }

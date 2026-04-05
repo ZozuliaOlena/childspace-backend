@@ -116,5 +116,45 @@ namespace childspace_backend.Repositories
 
             return _mapper.Map<IEnumerable<UserDto>>(users);
         }
+
+        public async Task<bool> AddParticipantAsync(Guid chatId, Guid userId)
+        {
+            var alreadyExists = await _context.UserChats
+                .AnyAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
+
+            if (alreadyExists)
+                return true;
+
+            var chatExists = await _context.Chats.AnyAsync(c => c.Id == chatId);
+            var userExists = await _context.Users.AnyAsync(u => u.Id == userId);
+
+            if (!chatExists || !userExists)
+                return false;
+
+            var userChat = new UserChat
+            {
+                ChatId = chatId,
+                UserId = userId
+            };
+
+            _context.UserChats.Add(userChat);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> RemoveParticipantAsync(Guid chatId, Guid userId)
+        {
+            var userChat = await _context.UserChats
+                .FirstOrDefaultAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
+
+            if (userChat == null)
+                return false;
+
+            _context.UserChats.Remove(userChat);
+            await _context.SaveChangesAsync();
+
+            return true;
+        }
     }
 }

@@ -15,5 +15,9 @@ namespace childspace_backend.Repositories
         Task<bool> DeleteAsync(Guid id);
 
         Task<IEnumerable<UserDto>> GetChatParticipantsAsync(Guid chatId);
+
+        Task<bool> AddParticipantAsync(Guid chatId, Guid userId);
+
+        Task<bool> RemoveParticipantAsync(Guid chatId, Guid userId);
     }
 }
