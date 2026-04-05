@@ -8,6 +8,8 @@ namespace childspace_backend.Models.DTOs
         public string Name { get; set; }
         public string? Description { get; set; }
 
+        public string? PhotoUrl { get; set; }
+
         public Guid CenterId { get; set; }
         [JsonIgnore]
         public CenterDto Center { get; set; }

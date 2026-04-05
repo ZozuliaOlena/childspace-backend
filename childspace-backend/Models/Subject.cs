@@ -11,6 +11,8 @@ namespace childspace_backend.Models
         public string Name { get; set; }
         public string? Description { get; set; }
 
+        public string? PhotoUrl { get; set; }
+
         public Guid CenterId { get; set; }
         [ForeignKey("CenterId")]
         public virtual Center Center { get; set; }

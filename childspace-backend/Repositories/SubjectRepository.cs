@@ -45,6 +45,7 @@ namespace childspace_backend.Repositories
                 Id = Guid.NewGuid(),
                 Name = dto.Name,
                 Description = dto.Description,
+                PhotoUrl = dto.PhotoUrl,
                 CenterId = dto.CenterId
             };
 
@@ -63,6 +64,7 @@ namespace childspace_backend.Repositories
 
             subject.Name = dto.Name;
             subject.Description = dto.Description;
+            subject.PhotoUrl = dto.PhotoUrl;
 
             await _context.SaveChangesAsync();
 
