@@ -66,5 +66,13 @@ namespace childspace_backend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("subject/{subjectId:guid}")]
+        public async Task<ActionResult<IEnumerable<MaterialDto>>> GetBySubject(Guid subjectId)
+        {
+            var materials = await _repository.GetBySubjectIdAsync(subjectId);
+
+            return Ok(materials);
+        }
     }
 }

@@ -13,5 +13,7 @@ namespace childspace_backend.Repositories
         Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto);
 
         Task<bool> DeleteAsync(Guid id);
+
+        Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId);
     }
 }

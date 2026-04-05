@@ -7,9 +7,12 @@ namespace childspace_backend.Models.DTOs
     {
         public Guid Id { get; set; }
 
-        public Guid GroupId { get; set; }
+        public Guid SubjectId { get; set; }
+
         [JsonIgnore]
-        public GroupDto Group { get; set; }
+        public SubjectDto Subject { get; set; }
+
+        public string SubjectName { get; set; }
 
         public Guid TeacherId { get; set; }
         [JsonIgnore]

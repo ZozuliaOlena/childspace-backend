@@ -14,5 +14,7 @@ namespace childspace_backend.Models
         public Guid CenterId { get; set; }
         [ForeignKey("CenterId")]
         public virtual Center Center { get; set; }
+
+        public virtual List<Material>? Materials { get; set; }
     }
 }

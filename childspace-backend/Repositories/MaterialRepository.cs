@@ -20,7 +20,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<MaterialDto>> GetAllAsync()
         {
             var materials = await _context.Materials
-                .Include(m => m.Group)
+                .Include(m => m.Subject)
                 .Include(m => m.Teacher)
                 .ToListAsync();
 
@@ -41,7 +41,7 @@ namespace childspace_backend.Repositories
         public async Task<MaterialDto?> GetByIdAsync(Guid id)
         {
             var material = await _context.Materials
-                .Include(m => m.Group)
+                .Include(m => m.Subject)
                 .Include(m => m.Teacher)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -63,7 +63,7 @@ namespace childspace_backend.Repositories
             var material = new Material
             {
                 Id = Guid.NewGuid(),
-                GroupId = dto.GroupId,
+                SubjectId = dto.SubjectId,
                 TeacherId = dto.TeacherId,
                 Title = dto.Title,
                 FileUrl = dto.FileUrl,
@@ -106,6 +106,34 @@ namespace childspace_backend.Repositories
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId)
+        {
+            var materials = await _context.Materials
+                .Include(m => m.Subject)
+                .Include(m => m.Teacher)
+                .Where(m => m.SubjectId == subjectId)
+                .ToListAsync();
+
+            var dtos = _mapper.Map<List<MaterialDto>>(materials);
+
+            foreach (var dto in dtos)
+            {
+                var original = materials.First(m => m.Id == dto.Id);
+
+                if (original.Teacher != null)
+                {
+                    dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
+                }
+
+                if (original.Subject != null)
+                {
+                    dto.SubjectName = original.Subject.Name;
+                }
+            }
+
+            return dtos;
         }
     }
 }
