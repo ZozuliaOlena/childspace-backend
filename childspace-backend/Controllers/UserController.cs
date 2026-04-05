@@ -188,5 +188,27 @@ namespace childspace_backend.Controllers
 
             return Ok(user);
         }
+
+        [HttpGet("available-for-chat")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetAvailableUsersForChat()
+        {
+            try
+            {
+                var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+                if (!Guid.TryParse(userIdString, out var userId))
+                    return Unauthorized(new { message = "Невірний токен" });
+
+                bool isSuperAdmin = User.IsInRole(StaticDetail.Role_SuperAdmin);
+
+                var users = await _repository.GetUsersForChatAsync(userId, isSuperAdmin);
+
+                return Ok(users);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

@@ -191,5 +191,35 @@ namespace childspace_backend.Repositories
             var result = await _userManager.ChangePasswordAsync(user, dto.CurrentPassword, dto.NewPassword);
             return result;
         }
+
+        public async Task<IEnumerable<UserDto>> GetUsersForChatAsync(Guid currentUserId, bool isSuperAdmin)
+        {
+            var query = _context.Users
+                .Include(u => u.Center)
+                .AsQueryable();
+
+            if (!isSuperAdmin)
+            {
+                var currentUser = await _context.Users.FindAsync(currentUserId);
+
+                if (currentUser == null || currentUser.CenterId == null)
+                    return new List<UserDto>();
+
+                query = query.Where(u => u.CenterId == currentUser.CenterId);
+            }
+
+            var users = await query.ToListAsync();
+            var userDtos = _mapper.Map<List<UserDto>>(users);
+
+            foreach (var dto in userDtos)
+            {
+                dto.Roles = await (from userRole in _context.UserRoles
+                                   join role in _context.Roles on userRole.RoleId equals role.Id
+                                   where userRole.UserId == dto.Id
+                                   select role.Name).ToListAsync();
+            }
+
+            return userDtos;
+        }
     }
 }

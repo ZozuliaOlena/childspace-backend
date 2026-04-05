@@ -24,5 +24,7 @@ namespace childspace_backend.Repositories
         Task<IdentityResult> RemoveFromRolesAsync(User user, IEnumerable<string> roles);
 
         Task<IdentityResult> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
+
+        Task<IEnumerable<UserDto>> GetUsersForChatAsync(Guid currentUserId, bool isSuperAdmin);
     }
 }
