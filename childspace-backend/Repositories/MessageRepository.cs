@@ -79,5 +79,65 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId)
+        {
+            var messages = await _context.Messages
+                .Include(m => m.UserChat)
+                    .ThenInclude(uc => uc.User)
+                .Where(m => m.UserChat.ChatId == chatId)
+                .OrderBy(m => m.CreatedAt) 
+                .Select(m => new ChatMessageResponseDto
+                {
+                    Id = m.Id,
+                    Content = m.Content,
+                    CreatedAt = m.CreatedAt,
+                    SenderId = m.UserChat.UserId,
+                    SenderName = m.UserChat.User.FirstName + " " + m.UserChat.User.LastName
+                })
+                .ToListAsync();
+
+            return messages;
+        }
+
+        public async Task<ChatMessageResponseDto> SendMessageAsync(Guid userId, SendMessageDto dto)
+        {
+            var userChat = await _context.UserChats
+                .Include(uc => uc.User)
+                .FirstOrDefaultAsync(uc => uc.UserId == userId && uc.ChatId == dto.ChatId);
+
+            if (userChat == null)
+            {
+                userChat = new UserChat
+                {
+                    UserId = userId,
+                    ChatId = dto.ChatId
+                };
+
+                _context.UserChats.Add(userChat);
+                await _context.SaveChangesAsync();
+
+                _context.Entry(userChat).Reference(uc => uc.User).Load();
+            }
+
+            var message = new Message
+            {
+                UserChatId = userChat.Id,
+                Content = dto.Content,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _context.Messages.Add(message);
+            await _context.SaveChangesAsync();
+
+            return new ChatMessageResponseDto
+            {
+                Id = message.Id,
+                Content = message.Content,
+                CreatedAt = message.CreatedAt,
+                SenderId = userId,
+                SenderName = userChat.User.FirstName + " " + userChat.User.LastName
+            };
+        }
     }
 }

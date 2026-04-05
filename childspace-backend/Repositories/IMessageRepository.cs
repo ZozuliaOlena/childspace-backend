@@ -13,5 +13,8 @@ namespace childspace_backend.Repositories
         Task<MessageDto?> UpdateAsync(Guid id, MessageUpdateDto dto);
 
         Task<bool> DeleteAsync(Guid id);
+
+        Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId);
+        Task<ChatMessageResponseDto> SendMessageAsync(Guid userId, SendMessageDto dto);
     }
 }

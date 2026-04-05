@@ -1,6 +1,7 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace childspace_backend.Controllers
 {
@@ -65,6 +66,34 @@ namespace childspace_backend.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("chat/{chatId:guid}")]
+        public async Task<ActionResult<IEnumerable<ChatMessageResponseDto>>> GetChatMessages(Guid chatId)
+        {
+            var messages = await _repository.GetMessagesByChatIdAsync(chatId);
+            return Ok(messages);
+        }
+
+        [HttpPost("send")]
+        public async Task<ActionResult<ChatMessageResponseDto>> SendMessage([FromBody] SendMessageDto dto)
+        {
+            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized(new { message = "Invalid user token" });
+            }
+
+            try
+            {
+                var message = await _repository.SendMessageAsync(userId, dto);
+                return Ok(message);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }
