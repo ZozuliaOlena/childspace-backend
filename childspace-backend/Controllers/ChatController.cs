@@ -1,5 +1,6 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
@@ -65,6 +66,21 @@ namespace childspace_backend.Controllers
                 return NotFound();
 
             return NoContent();
+        }
+
+        [HttpGet("{id:guid}/participants")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetParticipants(Guid id)
+        {
+            try
+            {
+                var participants = await _repository.GetChatParticipantsAsync(id);
+                return Ok(participants);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
     }
 }

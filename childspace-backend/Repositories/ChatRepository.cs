@@ -24,6 +24,7 @@ namespace childspace_backend.Repositories
                 {
                     Chat = chat,
                     ParticipantCount = chat.UserChats.Count(),
+
                     LastMessage = _context.Messages
                         .Where(m => m.UserChat.ChatId == chat.Id)
                         .OrderByDescending(m => m.CreatedAt)
@@ -104,6 +105,16 @@ namespace childspace_backend.Repositories
             await _context.SaveChangesAsync();
 
             return true;
+        }
+
+        public async Task<IEnumerable<UserDto>> GetChatParticipantsAsync(Guid chatId)
+        {
+            var users = await _context.UserChats
+                .Where(uc => uc.ChatId == chatId)
+                .Select(uc => uc.User)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<UserDto>>(users);
         }
     }
 }
