@@ -24,7 +24,18 @@ namespace childspace_backend.Repositories
                 .Include(m => m.Teacher)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<MaterialDto>>(materials);
+            var dtos = _mapper.Map<List<MaterialDto>>(materials);
+
+            foreach (var dto in dtos)
+            {
+                var originalMaterial = materials.First(m => m.Id == dto.Id);
+                if (originalMaterial.Teacher != null)
+                {
+                    dto.TeacherName = $"{originalMaterial.Teacher.FirstName} {originalMaterial.Teacher.LastName}";
+                }
+            }
+
+            return dtos;
         }
 
         public async Task<MaterialDto?> GetByIdAsync(Guid id)
@@ -37,7 +48,14 @@ namespace childspace_backend.Repositories
             if (material == null)
                 return null;
 
-            return _mapper.Map<MaterialDto>(material);
+            var dto = _mapper.Map<MaterialDto>(material);
+
+            if (material.Teacher != null)
+            {
+                dto.TeacherName = $"{material.Teacher.FirstName} {material.Teacher.LastName}";
+            }
+
+            return dto;
         }
 
         public async Task<MaterialDto> CreateAsync(MaterialCreateDto dto)
@@ -57,7 +75,7 @@ namespace childspace_backend.Repositories
             _context.Materials.Add(material);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<MaterialDto>(material);
+            return await GetByIdAsync(material.Id);
         }
 
         public async Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto)
@@ -74,7 +92,7 @@ namespace childspace_backend.Repositories
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<MaterialDto>(material);
+            return await GetByIdAsync(id);
         }
 
         public async Task<bool> DeleteAsync(Guid id)

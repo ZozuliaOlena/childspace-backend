@@ -15,6 +15,8 @@ namespace childspace_backend.Models.DTOs
         [JsonIgnore]
         public UserDto Teacher { get; set; }
 
+        public string TeacherName { get; set; }
+
         public string Title { get; set; }
         public string FileUrl { get; set; }
         public string? Description { get; set; }
