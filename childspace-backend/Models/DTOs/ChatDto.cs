@@ -8,6 +8,9 @@ namespace childspace_backend.Models.DTOs
         public string? Name { get; set; }
         public DateTime CreatedAt { get; set; }
 
+        public int ParticipantsCount { get; set; }
+        public ChatMessageResponseDto? LastMessage { get; set; }
+
         [JsonIgnore]
         public List<UserChatDto> Users { get; set; } = new List<UserChatDto>();
     }

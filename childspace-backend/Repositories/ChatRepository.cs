@@ -19,11 +19,38 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ChatDto>> GetAllAsync()
         {
-            var chats = await _context.Chats
-                .Include(c => c.UserChats)
+            var chatsQuery = await _context.Chats
+                .Select(chat => new
+                {
+                    Chat = chat,
+                    ParticipantCount = chat.UserChats.Count(),
+                    LastMessage = _context.Messages
+                        .Where(m => m.UserChat.ChatId == chat.Id)
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => new ChatMessageResponseDto
+                        {
+                            Id = m.Id,
+                            Content = m.Content,
+                            CreatedAt = m.CreatedAt,
+                            SenderId = m.UserChat.UserId,
+                            SenderName = m.UserChat.User.FirstName + " " + m.UserChat.User.LastName
+                        })
+                        .FirstOrDefault()
+                })
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ChatDto>>(chats);
+            var chatDtos = chatsQuery.Select(x => new ChatDto
+            {
+                Id = x.Chat.Id,
+                Name = x.Chat.Name,
+                CreatedAt = x.Chat.CreatedAt,
+                ParticipantsCount = x.ParticipantCount,
+                LastMessage = x.LastMessage
+            })
+            .OrderByDescending(c => c.LastMessage?.CreatedAt ?? c.CreatedAt)
+            .ToList();
+
+            return chatDtos;
         }
 
         public async Task<ChatDto?> GetByIdAsync(Guid id)
