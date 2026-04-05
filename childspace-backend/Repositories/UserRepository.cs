@@ -221,5 +221,31 @@ namespace childspace_backend.Repositories
 
             return userDtos;
         }
+
+        public async Task<IEnumerable<UserDto>> GetUsersByRoleAsync(string roleName, Guid? centerId = null)
+        {
+            var query = (from user in _context.Users
+                         join userRole in _context.UserRoles on user.Id equals userRole.UserId
+                         join role in _context.Roles on userRole.RoleId equals role.Id
+                         where role.Name == roleName
+                         select user)
+                        .Include(u => u.Center)
+                        .AsQueryable();
+
+            if (centerId.HasValue)
+            {
+                query = query.Where(u => u.CenterId == centerId.Value);
+            }
+
+            var users = await query.ToListAsync();
+            var userDtos = _mapper.Map<List<UserDto>>(users);
+
+            foreach (var dto in userDtos)
+            {
+                dto.Roles = new List<string> { roleName };
+            }
+
+            return userDtos;
+        }
     }
 }

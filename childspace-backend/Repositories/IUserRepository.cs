@@ -26,5 +26,7 @@ namespace childspace_backend.Repositories
         Task<IdentityResult> ChangePasswordAsync(Guid userId, ChangePasswordDto dto);
 
         Task<IEnumerable<UserDto>> GetUsersForChatAsync(Guid currentUserId, bool isSuperAdmin);
+
+        Task<IEnumerable<UserDto>> GetUsersByRoleAsync(string roleName, Guid? centerId = null);
     }
 }

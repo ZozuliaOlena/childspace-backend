@@ -210,5 +210,39 @@ namespace childspace_backend.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+
+        [HttpGet("parents")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetParents()
+        {
+            Guid? filterCenterId = null;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _userManager.FindByIdAsync(userId);
+                filterCenterId = user?.CenterId;
+            }
+
+            var parents = await _repository.GetUsersByRoleAsync(StaticDetail.Role_Parent, filterCenterId);
+            return Ok(parents);
+        }
+
+        [HttpGet("teachers")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<ActionResult<IEnumerable<UserDto>>> GetTeachers()
+        {
+            Guid? filterCenterId = null;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                var user = await _userManager.FindByIdAsync(userId);
+                filterCenterId = user?.CenterId;
+            }
+
+            var teachers = await _repository.GetUsersByRoleAsync(StaticDetail.Role_Teacher, filterCenterId);
+            return Ok(teachers);
+        }
     }
 }
