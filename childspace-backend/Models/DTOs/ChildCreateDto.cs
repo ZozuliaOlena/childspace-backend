@@ -2,7 +2,6 @@
 {
     public class CreateChildDto
     {
-        public Guid CenterId { get; set; }
         public Guid ParentId { get; set; }
 
         public string FirstName { get; set; }

@@ -67,10 +67,18 @@ namespace childspace_backend.Repositories
 
         public async Task<ChildDto?> CreateAsync(CreateChildDto dto)
         {
+            var parent = await _context.Users.FindAsync(dto.ParentId);
+
+            if (parent == null)
+                throw new Exception("Parent not found in database.");
+
+            if (parent.CenterId == null)
+                throw new Exception("The parent has no center specified. Unable to link the child.");
+
             var child = new Child
             {
                 Id = Guid.NewGuid(),
-                CenterId = dto.CenterId,
+                CenterId = parent.CenterId.Value,
                 ParentId = dto.ParentId,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
@@ -79,7 +87,6 @@ namespace childspace_backend.Repositories
             };
 
             _context.Children.Add(child);
-
             await _context.SaveChangesAsync();
 
             return new ChildDto

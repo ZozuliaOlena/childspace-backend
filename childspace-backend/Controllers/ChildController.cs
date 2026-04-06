@@ -46,13 +46,20 @@ namespace childspace_backend.Controllers
             if (dto == null)
                 return BadRequest(new { message = "Invalid data" });
 
-            var createdChild = await _childRepository.CreateAsync(dto);
+            try
+            {
+                var createdChild = await _childRepository.CreateAsync(dto);
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = createdChild.Id },
-                createdChild
-            );
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = createdChild.Id },
+                    createdChild
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id}")]
