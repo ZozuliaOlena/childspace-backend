@@ -53,7 +53,7 @@ namespace childspace_backend.Controllers
             return Ok(new
             {
                 token = tokenString,
-                userId = user.Id,
+                id = user.Id,
                 email = user.Email,
                 firstName = user.FirstName,
                 roles
