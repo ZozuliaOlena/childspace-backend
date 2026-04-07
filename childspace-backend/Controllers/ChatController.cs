@@ -36,9 +36,17 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize]
         public async Task<ActionResult<ChatDto>> Create(ChatCreateDto dto)
         {
             var created = await _repository.CreateAsync(dto);
+
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (Guid.TryParse(userIdString, out var userId))
+            {
+                await _repository.AddParticipantAsync(created.Id, userId);
+            }
 
             return CreatedAtAction(
                 nameof(GetById),
