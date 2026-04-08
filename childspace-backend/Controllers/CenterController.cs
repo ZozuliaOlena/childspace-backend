@@ -5,13 +5,12 @@ using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize] 
+    [Authorize]
     public class CenterController : BaseController
     {
         private readonly ICenterRepository _repository;
@@ -30,9 +29,7 @@ namespace childspace_backend.Controllers
 
             if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var user = await _userManager.FindByIdAsync(userId);
-
+                var user = await GetCurrentUserAsync();
                 filterCenterId = user?.CenterId;
 
                 if (filterCenterId == null)
@@ -47,7 +44,7 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Get(Guid id)
         {
-            if (!await CheckPermissionsAsync(id))
+            if (!await CheckCenterPermissionsAsync(id))
             {
                 return Forbid();
             }
@@ -74,7 +71,7 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Update(Guid id, [FromBody] CenterUpdateDto dto)
         {
-            if (!await CheckPermissionsAsync(id))
+            if (!await CheckCenterPermissionsAsync(id))
             {
                 return Forbid();
             }

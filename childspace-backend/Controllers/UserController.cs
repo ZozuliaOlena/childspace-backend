@@ -5,7 +5,6 @@ using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 
 namespace childspace_backend.Controllers
@@ -31,10 +30,9 @@ namespace childspace_backend.Controllers
 
             if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var user = await _userManager.FindByIdAsync(userId);
-
+                var user = await GetCurrentUserAsync();
                 filterCenterId = user?.CenterId;
+
                 if (filterCenterId == null) return Forbid();
             }
 
@@ -49,7 +47,7 @@ namespace childspace_backend.Controllers
             var targetUser = await _repository.GetByIdAsync(id);
             if (targetUser == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(targetUser.CenterId))
+            if (!await CheckCenterPermissionsAsync(targetUser.CenterId))
                 return Forbid();
 
             return Ok(targetUser);
@@ -59,7 +57,7 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<IActionResult> Create([FromBody] UserCreateDto dto)
         {
-            if (!await CheckPermissionsAsync(dto.CenterId))
+            if (!await CheckCenterPermissionsAsync(dto.CenterId))
                 return Forbid();
 
             try
@@ -80,10 +78,10 @@ namespace childspace_backend.Controllers
             var existingUser = await _repository.GetByIdAsync(id);
             if (existingUser == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(existingUser.CenterId))
+            if (!await CheckCenterPermissionsAsync(existingUser.CenterId))
                 return Forbid();
 
-            if (!await CheckPermissionsAsync(dto.CenterId))
+            if (!await CheckCenterPermissionsAsync(dto.CenterId))
                 return Forbid();
 
             var user = await _repository.UpdateAsync(id, dto);
@@ -97,7 +95,7 @@ namespace childspace_backend.Controllers
             var targetUser = await _userManager.FindByIdAsync(id.ToString());
             if (targetUser == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(targetUser.CenterId))
+            if (!await CheckCenterPermissionsAsync(targetUser.CenterId))
                 return Forbid();
 
             var result = await _repository.DeleteAsync(id);
@@ -112,7 +110,7 @@ namespace childspace_backend.Controllers
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
+            if (!await CheckCenterPermissionsAsync(userEntity.CenterId)) return Forbid();
 
             var roles = await _repository.GetUserRolesAsync(userEntity);
             return Ok(roles);
@@ -125,7 +123,7 @@ namespace childspace_backend.Controllers
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
+            if (!await CheckCenterPermissionsAsync(userEntity.CenterId)) return Forbid();
 
             var result = await _repository.AddToRolesAsync(userEntity, roles);
             if (!result.Succeeded) return BadRequest(result.Errors);
@@ -140,7 +138,7 @@ namespace childspace_backend.Controllers
             var userEntity = await _userManager.FindByIdAsync(id.ToString());
             if (userEntity == null) return NotFound();
 
-            if (!await CheckPermissionsAsync(userEntity.CenterId)) return Forbid();
+            if (!await CheckCenterPermissionsAsync(userEntity.CenterId)) return Forbid();
 
             var result = await _repository.RemoveFromRolesAsync(userEntity, roles);
             if (!result.Succeeded) return BadRequest(result.Errors);
@@ -152,6 +150,8 @@ namespace childspace_backend.Controllers
         [Authorize]
         public async Task<IActionResult> ChangePassword(Guid id, [FromBody] ChangePasswordDto dto)
         {
+            if (!IsOwner(id)) return Forbid();
+
             var result = await _repository.ChangePasswordAsync(id, dto);
 
             if (!result.Succeeded)
@@ -164,29 +164,13 @@ namespace childspace_backend.Controllers
         [Authorize]
         public async Task<IActionResult> GetMyProfile()
         {
-            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (string.IsNullOrEmpty(userIdString))
-            {
-                var claims = User.Claims.Select(c => $"{c.Type}: {c.Value}").ToList();
-                return Unauthorized(new
-                {
-                    message = "Token is valid, but User ID claim is missing.",
-                    availableClaims = claims
-                });
-            }
-
-            if (!Guid.TryParse(userIdString, out var userId))
-            {
-                return BadRequest(new { message = "Invalid User ID format." });
-            }
-
-            var user = await _repository.GetByIdAsync(userId);
+            var user = await GetCurrentUserAsync();
 
             if (user == null)
                 return NotFound(new { message = "User not found in database." });
 
-            return Ok(user);
+            var userDto = await _repository.GetByIdAsync(user.Id);
+            return Ok(userDto);
         }
 
         [HttpGet("available-for-chat")]
@@ -219,8 +203,7 @@ namespace childspace_backend.Controllers
 
             if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await GetCurrentUserAsync();
                 filterCenterId = user?.CenterId;
             }
 
@@ -236,8 +219,7 @@ namespace childspace_backend.Controllers
 
             if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
-                var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-                var user = await _userManager.FindByIdAsync(userId);
+                var user = await GetCurrentUserAsync();
                 filterCenterId = user?.CenterId;
             }
 
