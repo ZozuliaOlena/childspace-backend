@@ -6,7 +6,7 @@ namespace childspace_backend.Repositories
     {
         Task<ChildDto?> GetByIdAsync(Guid id);
 
-        Task<IEnumerable<ChildDto>> GetAllAsync();
+        Task<IEnumerable<ChildDto>> GetAllAsync(Guid? centerId = null);
 
         Task<IEnumerable<ChildDto>> GetByParentIdAsync(Guid parentId);
 

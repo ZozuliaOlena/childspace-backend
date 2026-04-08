@@ -14,9 +14,16 @@ namespace childspace_backend.Repositories
             _context = context;
         }
 
-        public async Task<IEnumerable<ChildDto>> GetAllAsync()
+        public async Task<IEnumerable<ChildDto>> GetAllAsync(Guid? centerId = null)
         {
-            return await _context.Children
+            var query = _context.Children.AsQueryable();
+
+            if (centerId.HasValue)
+            {
+                query = query.Where(c => c.CenterId == centerId.Value);
+            }
+
+            return await query
                 .Select(child => new ChildDto
                 {
                     Id = child.Id,

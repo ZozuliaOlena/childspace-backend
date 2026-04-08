@@ -15,7 +15,15 @@ namespace childspace_backend.Controllers
             _userManager = userManager;
         }
 
-        protected async Task<bool> CheckPermissionsAsync(Guid? targetCenterId)
+        protected async Task<User?> GetCurrentUserAsync()
+        {
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(userId)) return null;
+
+            return await _userManager.FindByIdAsync(userId);
+        }
+
+        protected async Task<bool> CheckCenterPermissionsAsync(Guid? targetCenterId)
         {
             if (User.IsInRole(StaticDetail.Role_SuperAdmin))
                 return true;
@@ -23,16 +31,27 @@ namespace childspace_backend.Controllers
             if (!targetCenterId.HasValue)
                 return false;
 
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (string.IsNullOrEmpty(userId))
-                return false;
-
-            var user = await _userManager.FindByIdAsync(userId);
-
+            var user = await GetCurrentUserAsync();
             if (user == null || user.CenterId == null)
                 return false;
 
-            return user.CenterId == targetCenterId.Value;
+            if (User.IsInRole(StaticDetail.Role_CenterAdmin) || User.IsInRole(StaticDetail.Role_Teacher))
+            {
+                return user.CenterId == targetCenterId.Value;
+            }
+
+            return false;
+        }
+
+        protected bool IsOwner(Guid resourceOwnerId)
+        {
+            if (User.IsInRole(StaticDetail.Role_SuperAdmin))
+                return true;
+
+            var currentUserId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            if (string.IsNullOrEmpty(currentUserId)) return false;
+
+            return currentUserId == resourceOwnerId.ToString();
         }
     }
 }
