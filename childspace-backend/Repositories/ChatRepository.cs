@@ -156,5 +156,42 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<IEnumerable<ChatDto>> GetUserChatsAsync(Guid userId)
+        {
+            var chatsQuery = await _context.Chats
+                .Where(chat => chat.UserChats.Any(uc => uc.UserId == userId))
+                .Select(chat => new
+                {
+                    Chat = chat,
+                    ParticipantCount = chat.UserChats.Count(),
+                    LastMessage = _context.Messages
+                        .Where(m => m.UserChat.ChatId == chat.Id)
+                        .OrderByDescending(m => m.CreatedAt)
+                        .Select(m => new ChatMessageResponseDto
+                        {
+                            Id = m.Id,
+                            Content = m.Content,
+                            CreatedAt = m.CreatedAt,
+                            SenderId = m.UserChat.UserId,
+                            SenderName = m.UserChat.User.FirstName + " " + m.UserChat.User.LastName
+                        })
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
+
+            var chatDtos = chatsQuery.Select(x => new ChatDto
+            {
+                Id = x.Chat.Id,
+                Name = x.Chat.Name,
+                CreatedAt = x.Chat.CreatedAt,
+                ParticipantsCount = x.ParticipantCount,
+                LastMessage = x.LastMessage
+            })
+            .OrderByDescending(c => c.LastMessage?.CreatedAt ?? c.CreatedAt)
+            .ToList();
+
+            return chatDtos;
+        }
     }
 }

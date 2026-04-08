@@ -18,9 +18,18 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
+        [Authorize] 
         public async Task<ActionResult<IEnumerable<ChatDto>>> GetAll()
         {
-            var chats = await _repository.GetAllAsync();
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized(new { message = "Користувач не авторизований" });
+            }
+
+            var chats = await _repository.GetUserChatsAsync(userId);
+
             return Ok(chats);
         }
 
