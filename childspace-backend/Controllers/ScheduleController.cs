@@ -1,27 +1,41 @@
-﻿using childspace_backend.Models.DTOs;
+﻿using childspace_backend.Models;
+using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
 using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class ScheduleController : ControllerBase
+    [Authorize]
+    public class ScheduleController : BaseController
     {
         private readonly IScheduleRepository _repository;
 
-        public ScheduleController(IScheduleRepository repository)
+        public ScheduleController(IScheduleRepository repository, UserManager<User> userManager)
+            : base(userManager)
         {
             _repository = repository;
         }
 
         [HttpGet]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
-        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetAll([FromQuery] Guid? centerId)
         {
-            var schedules = await _repository.GetAllAsync();
+            Guid? filterCenterId = centerId;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var user = await GetCurrentUserAsync();
+                filterCenterId = user?.CenterId;
+
+                if (filterCenterId == null) return Forbid();
+            }
+
+            var schedules = await _repository.GetAllAsync(filterCenterId);
             return Ok(schedules);
         }
 
@@ -78,8 +92,10 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = StaticDetail.Role_Teacher)]
         public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetMySchedule()
         {
-            var teacherId = Guid.Parse(User.FindFirst("sub")?.Value!);
-            var schedules = await _repository.GetByTeacherIdAsync(teacherId);
+            var user = await GetCurrentUserAsync();
+            if (user == null) return Unauthorized();
+
+            var schedules = await _repository.GetByTeacherIdAsync(user.Id);
             return Ok(schedules);
         }
 
@@ -87,8 +103,10 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = StaticDetail.Role_Parent)]
         public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetChildrenSchedule()
         {
-            var parentId = Guid.Parse(User.FindFirst("sub")?.Value!);
-            var schedules = await _repository.GetByParentIdAsync(parentId);
+            var user = await GetCurrentUserAsync();
+            if (user == null) return Unauthorized();
+
+            var schedules = await _repository.GetByParentIdAsync(user.Id);
             return Ok(schedules);
         }
     }
