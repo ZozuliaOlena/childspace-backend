@@ -4,7 +4,7 @@ namespace childspace_backend.Repositories
 {
     public interface IScheduleRepository
     {
-        Task<IEnumerable<ScheduleDto>> GetAllAsync();
+        Task<IEnumerable<ScheduleDto>> GetAllAsync(Guid? centerId = null);
 
         Task<ScheduleDto?> GetByIdAsync(Guid id);
 
