@@ -18,6 +18,10 @@ namespace childspace_backend.Models.DTOs
         [JsonIgnore]
         public SubjectDto Subject { get; set; }
 
+        public string? GroupName { get; set; }
+        public string? TeacherName { get; set; }
+        public string? SubjectName { get; set; }
+
         public string RoomName { get; set; }
         public DateTime StartTime { get; set; }
         public DateTime EndTime { get; set; }

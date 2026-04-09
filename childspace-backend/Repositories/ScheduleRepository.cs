@@ -33,7 +33,22 @@ namespace childspace_backend.Repositories
 
             var schedules = await query.ToListAsync();
 
-            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
+            var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
+
+            foreach (var dto in dtos)
+            {
+                var original = schedules.First(s => s.Id == dto.Id);
+
+                dto.GroupName = original.Group?.Name;
+                dto.SubjectName = original.Subject?.Name;
+
+                if (original.Teacher != null)
+                {
+                    dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
+                }
+            }
+
+            return dtos;
         }
 
         public async Task<ScheduleDto?> GetByIdAsync(Guid id)
@@ -48,7 +63,17 @@ namespace childspace_backend.Repositories
             if (schedule == null)
                 return null;
 
-            return _mapper.Map<ScheduleDto>(schedule);
+            var dto = _mapper.Map<ScheduleDto>(schedule);
+
+            dto.GroupName = schedule.Group?.Name;
+            dto.SubjectName = schedule.Subject?.Name;
+
+            if (schedule.Teacher != null)
+            {
+                dto.TeacherName = $"{schedule.Teacher.FirstName} {schedule.Teacher.LastName}";
+            }
+
+            return dto;
         }
 
         public async Task<ScheduleDto> CreateAsync(ScheduleCreateDto dto)
@@ -110,7 +135,10 @@ namespace childspace_backend.Repositories
                 .Where(s => s.TeacherId == teacherId)
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
+            var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
+            MapNamesToDtos(schedules, dtos);
+
+            return dtos;
         }
 
         public async Task<IEnumerable<ScheduleDto>> GetByParentIdAsync(Guid parentId)
@@ -132,7 +160,26 @@ namespace childspace_backend.Repositories
                 .Where(s => groupIds.Contains(s.GroupId))
                 .ToListAsync();
 
-            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
+            var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
+            MapNamesToDtos(schedules, dtos);
+
+            return dtos;
+        }
+
+        private void MapNamesToDtos(IEnumerable<Schedule> schedules, List<ScheduleDto> dtos)
+        {
+            foreach (var dto in dtos)
+            {
+                var original = schedules.First(s => s.Id == dto.Id);
+
+                dto.GroupName = original.Group?.Name;
+                dto.SubjectName = original.Subject?.Name;
+
+                if (original.Teacher != null)
+                {
+                    dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
+                }
+            }
         }
     }
 }
