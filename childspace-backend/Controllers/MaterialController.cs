@@ -36,9 +36,15 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
-        public async Task<ActionResult<MaterialDto>> Create(MaterialCreateDto dto)
+        public async Task<ActionResult<MaterialDto>> Create([FromForm] MaterialCreateDto dto)
         {
-            var created = await _repository.CreateAsync(dto);
+            if (dto.File == null)
+                return BadRequest(new { message = "Файл обов'язковий" });
+
+            var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
+            if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження файлу" });
+
+            var created = await _repository.CreateAsync(dto, uploadResult.Url);
 
             return CreatedAtAction(
                 nameof(GetById),
