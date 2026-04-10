@@ -102,6 +102,7 @@ namespace childspace_backend.Repositories
             if (schedule == null)
                 return null;
 
+            schedule.GroupId = dto.GroupId; 
             schedule.TeacherId = dto.TeacherId;
             schedule.SubjectId = dto.SubjectId;
             schedule.RoomName = dto.RoomName;
