@@ -79,10 +79,12 @@ namespace childspace_backend.Controllers
                     return Ok(new { isLoggedIn = false });
                 }
                 var roles = await _userManager.GetRolesAsync(user);
+
                 return Ok(new
                 {
                     isLoggedIn = true,
                     id = user.Id,
+                    firstName = user.FirstName,
                     userName = user.UserName,
                     email = user.Email,
                     roles
