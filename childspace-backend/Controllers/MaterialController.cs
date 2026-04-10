@@ -9,10 +9,12 @@ namespace childspace_backend.Controllers
     public class MaterialController : ControllerBase
     {
         private readonly IMaterialRepository _repository;
+        private readonly ICloudinaryRepository _cloudinaryRepository;
 
-        public MaterialController(IMaterialRepository repository)
+        public MaterialController(IMaterialRepository repository, ICloudinaryRepository cloudinaryRepository)
         {
             _repository = repository;
+            _cloudinaryRepository = cloudinaryRepository;
         }
 
         [HttpGet]
@@ -46,12 +48,35 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
-        public async Task<ActionResult<MaterialDto>> Update(Guid id, MaterialUpdateDto dto)
+        public async Task<ActionResult<MaterialDto>> Update(Guid id, [FromForm] MaterialUpdateDto dto)
         {
-            var updated = await _repository.UpdateAsync(id, dto);
+            var existingMaterial = await _repository.GetByIdAsync(id);
+            if (existingMaterial == null) return NotFound();
 
-            if (updated == null)
-                return NotFound();
+            string newFileUrl = existingMaterial.FileUrl;
+
+            if (dto.File != null)
+            {
+                var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
+                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження нового файлу" });
+
+                newFileUrl = uploadResult.Url; 
+
+                var oldPublicId = ExtractPublicIdFromUrl(existingMaterial.FileUrl);
+                if (!string.IsNullOrEmpty(oldPublicId))
+                {
+                    try
+                    {
+                        await _cloudinaryRepository.DeleteAsync(oldPublicId);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to delete old file from Cloudinary: {ex.Message}");
+                    }
+                }
+            }
+
+            var updated = await _repository.UpdateAsync(id, dto, newFileUrl);
 
             return Ok(updated);
         }
@@ -73,6 +98,36 @@ namespace childspace_backend.Controllers
             var materials = await _repository.GetBySubjectIdAsync(subjectId);
 
             return Ok(materials);
+        }
+
+        private string? ExtractPublicIdFromUrl(string url)
+        {
+            if (string.IsNullOrEmpty(url)) return null;
+
+            try
+            {
+                var uploadIndex = url.LastIndexOf("/upload/");
+                if (uploadIndex == -1) return null;
+
+                var pathAfterUpload = url.Substring(uploadIndex + 8);
+
+                if (pathAfterUpload.StartsWith("v") && pathAfterUpload.Contains("/"))
+                {
+                    pathAfterUpload = pathAfterUpload.Substring(pathAfterUpload.IndexOf("/") + 1);
+                }
+
+                var lastDotIndex = pathAfterUpload.LastIndexOf(".");
+                if (lastDotIndex != -1)
+                {
+                    pathAfterUpload = pathAfterUpload.Substring(0, lastDotIndex);
+                }
+
+                return pathAfterUpload;
+            }
+            catch
+            {
+                return null;
+            }
         }
     }
 }

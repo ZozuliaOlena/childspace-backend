@@ -58,7 +58,7 @@ namespace childspace_backend.Repositories
             return dto;
         }
 
-        public async Task<MaterialDto> CreateAsync(MaterialCreateDto dto)
+        public async Task<MaterialDto> CreateAsync(MaterialCreateDto dto, string fileUrl)
         {
             var material = new Material
             {
@@ -66,7 +66,7 @@ namespace childspace_backend.Repositories
                 SubjectId = dto.SubjectId,
                 TeacherId = dto.TeacherId,
                 Title = dto.Title,
-                FileUrl = dto.FileUrl,
+                FileUrl = fileUrl,
                 Description = dto.Description,
                 Type = dto.Type,
                 CreatedAt = DateTime.UtcNow
@@ -78,7 +78,7 @@ namespace childspace_backend.Repositories
             return await GetByIdAsync(material.Id);
         }
 
-        public async Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto)
+        public async Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto, string fileUrl)
         {
             var material = await _context.Materials.FindAsync(id);
 
@@ -86,7 +86,7 @@ namespace childspace_backend.Repositories
                 return null;
 
             material.Title = dto.Title;
-            material.FileUrl = dto.FileUrl;
+            material.FileUrl = fileUrl;
             material.Description = dto.Description;
             material.Type = dto.Type;
 
