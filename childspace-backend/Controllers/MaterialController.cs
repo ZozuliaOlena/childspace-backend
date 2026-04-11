@@ -36,15 +36,28 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [RequestSizeLimit(104857600)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
         public async Task<ActionResult<MaterialDto>> Create([FromForm] MaterialCreateDto dto)
         {
-            if (dto.File == null)
-                return BadRequest(new { message = "Файл обов'язковий" });
+            string finalUrl = "";
 
-            var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
-            if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження файлу" });
+            if (dto.File != null)
+            {
+                var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
+                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження файлу" });
+                finalUrl = uploadResult.Url;
+            }
+            else if (!string.IsNullOrEmpty(dto.LinkUrl))
+            {
+                finalUrl = dto.LinkUrl;
+            }
+            else
+            {
+                return BadRequest(new { message = "Будь ласка, додайте файл або вставте посилання" });
+            }
 
-            var created = await _repository.CreateAsync(dto, uploadResult.Url);
+            var created = await _repository.CreateAsync(dto, finalUrl);
 
             return CreatedAtAction(
                 nameof(GetById),
@@ -54,20 +67,32 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [RequestSizeLimit(104857600)]
+        [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
         public async Task<ActionResult<MaterialDto>> Update(Guid id, [FromForm] MaterialUpdateDto dto)
         {
             var existingMaterial = await _repository.GetByIdAsync(id);
             if (existingMaterial == null) return NotFound();
 
             string newFileUrl = existingMaterial.FileUrl;
+            bool urlChanged = false;
 
             if (dto.File != null)
             {
                 var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
                 if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження нового файлу" });
 
-                newFileUrl = uploadResult.Url; 
+                newFileUrl = uploadResult.Url;
+                urlChanged = true;
+            }
+            else if (!string.IsNullOrEmpty(dto.LinkUrl))
+            {
+                newFileUrl = dto.LinkUrl;
+                urlChanged = true;
+            }
 
+            if (urlChanged)
+            {
                 var oldPublicId = ExtractPublicIdFromUrl(existingMaterial.FileUrl);
                 if (!string.IsNullOrEmpty(oldPublicId))
                 {

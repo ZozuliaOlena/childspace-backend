@@ -8,6 +8,8 @@ namespace childspace_backend.Models.DTOs
 
         public IFormFile? File { get; set; }
 
+        public string? LinkUrl { get; set; }
+
         public string? Description { get; set; }
 
         public MaterialType Type { get; set; }
