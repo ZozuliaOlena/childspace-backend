@@ -17,12 +17,24 @@ namespace childspace_backend.Repositories
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<MaterialDto>> GetAllAsync()
+        public async Task<IEnumerable<MaterialDto>> GetAllAsync(Guid? centerId = null, Guid? subjectId = null) 
         {
-            var materials = await _context.Materials
+            var query = _context.Materials
                 .Include(m => m.Subject)
                 .Include(m => m.Teacher)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (centerId.HasValue)
+            {
+                query = query.Where(m => m.Subject.CenterId == centerId.Value);
+            }
+
+            if (subjectId.HasValue)
+            {
+                query = query.Where(m => m.SubjectId == subjectId.Value);
+            }
+
+            var materials = await query.ToListAsync();
 
             var dtos = _mapper.Map<List<MaterialDto>>(materials);
 
@@ -32,6 +44,10 @@ namespace childspace_backend.Repositories
                 if (originalMaterial.Teacher != null)
                 {
                     dto.TeacherName = $"{originalMaterial.Teacher.FirstName} {originalMaterial.Teacher.LastName}";
+                }
+                if (originalMaterial.Subject != null)
+                {
+                    dto.SubjectName = originalMaterial.Subject.Name;
                 }
             }
 
