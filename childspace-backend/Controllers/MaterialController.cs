@@ -1,6 +1,7 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using childspace_backend.Utility;
 
 namespace childspace_backend.Controllers
 {
@@ -93,7 +94,7 @@ namespace childspace_backend.Controllers
 
             if (urlChanged)
             {
-                var oldPublicId = ExtractPublicIdFromUrl(existingMaterial.FileUrl);
+                var oldPublicId = CloudinaryHelper.ExtractPublicIdFromUrl(existingMaterial.FileUrl);
                 if (!string.IsNullOrEmpty(oldPublicId))
                 {
                     try
@@ -129,36 +130,6 @@ namespace childspace_backend.Controllers
             var materials = await _repository.GetBySubjectIdAsync(subjectId);
 
             return Ok(materials);
-        }
-
-        private string? ExtractPublicIdFromUrl(string url)
-        {
-            if (string.IsNullOrEmpty(url)) return null;
-
-            try
-            {
-                var uploadIndex = url.LastIndexOf("/upload/");
-                if (uploadIndex == -1) return null;
-
-                var pathAfterUpload = url.Substring(uploadIndex + 8);
-
-                if (pathAfterUpload.StartsWith("v") && pathAfterUpload.Contains("/"))
-                {
-                    pathAfterUpload = pathAfterUpload.Substring(pathAfterUpload.IndexOf("/") + 1);
-                }
-
-                var lastDotIndex = pathAfterUpload.LastIndexOf(".");
-                if (lastDotIndex != -1)
-                {
-                    pathAfterUpload = pathAfterUpload.Substring(0, lastDotIndex);
-                }
-
-                return pathAfterUpload;
-            }
-            catch
-            {
-                return null;
-            }
         }
     }
 }
