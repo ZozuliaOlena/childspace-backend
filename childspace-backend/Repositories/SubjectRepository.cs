@@ -43,15 +43,15 @@ namespace childspace_backend.Repositories
             return _mapper.Map<SubjectDto>(subject);
         }
 
-        public async Task<SubjectDto> CreateAsync(SubjectCreateDto dto)
+        public async Task<SubjectDto> CreateAsync(SubjectCreateDto dto, string? photoUrl)
         {
             var subject = new Subject
             {
                 Id = Guid.NewGuid(),
                 Name = dto.Name,
                 Description = dto.Description,
-                PhotoUrl = dto.PhotoUrl,
-                CenterId = dto.CenterId
+                CenterId = dto.CenterId,
+                PhotoUrl = photoUrl 
             };
 
             _context.Subjects.Add(subject);
@@ -60,16 +60,14 @@ namespace childspace_backend.Repositories
             return _mapper.Map<SubjectDto>(subject);
         }
 
-        public async Task<SubjectDto?> UpdateAsync(Guid id, SubjectUpdateDto dto)
+        public async Task<SubjectDto?> UpdateAsync(Guid id, SubjectUpdateDto dto, string? photoUrl)
         {
             var subject = await _context.Subjects.FindAsync(id);
-
-            if (subject == null)
-                return null;
+            if (subject == null) return null;
 
             subject.Name = dto.Name;
             subject.Description = dto.Description;
-            subject.PhotoUrl = dto.PhotoUrl;
+            subject.PhotoUrl = photoUrl; 
 
             await _context.SaveChangesAsync();
 

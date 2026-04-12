@@ -10,18 +10,22 @@ namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class SubjectController : BaseController 
+    public class SubjectController : BaseController
     {
         private readonly ISubjectRepository _repository;
+        private readonly ICloudinaryRepository _cloudinaryRepository;
 
-        public SubjectController(ISubjectRepository repository, UserManager<User> userManager)
-            : base(userManager)
+        public SubjectController(
+            ISubjectRepository repository,
+            ICloudinaryRepository cloudinaryRepository,
+            UserManager<User> userManager) : base(userManager)
         {
             _repository = repository;
+            _cloudinaryRepository = cloudinaryRepository;
         }
 
         [HttpGet]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetAll([FromQuery] Guid? centerId)
         {
             var subjects = await _repository.GetAllAsync(centerId);
@@ -29,31 +33,33 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id:guid}")]
-        [AllowAnonymous] 
+        [AllowAnonymous]
         public async Task<ActionResult<SubjectDto>> GetById(Guid id)
         {
             var subject = await _repository.GetByIdAsync(id);
-
-            if (subject == null)
-                return NotFound();
-
+            if (subject == null) return NotFound();
             return Ok(subject);
         }
 
         [HttpPost]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
-        public async Task<ActionResult<SubjectDto>> Create(SubjectCreateDto dto)
+        public async Task<ActionResult<SubjectDto>> Create([FromForm] SubjectCreateDto dto)
         {
             if (!await CheckCenterPermissionsAsync(dto.CenterId))
                 return Forbid();
 
-            var created = await _repository.CreateAsync(dto);
+            string? photoUrl = null;
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = created.Id },
-                created
-            );
+            if (dto.Photo != null)
+            {
+                var uploadResult = await _cloudinaryRepository.UploadAsync(dto.Photo);
+                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження фото" });
+                photoUrl = uploadResult.Url;
+            }
+
+            var created = await _repository.CreateAsync(dto, photoUrl);
+
+            return CreatedAtAction(nameof(GetById), new { id = created.Id }, created);
         }
 
         [HttpPut("{id:guid}")]
@@ -66,8 +72,24 @@ namespace childspace_backend.Controllers
             if (!await CheckCenterPermissionsAsync(existingSubject.CenterId))
                 return Forbid();
 
-            var updated = await _repository.UpdateAsync(id, dto);
+            string? newPhotoUrl = existingSubject.PhotoUrl;
 
+            if (dto.Photo != null)
+            {
+                var uploadResult = await _cloudinaryRepository.UploadAsync(dto.Photo);
+                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження нового фото" });
+
+                newPhotoUrl = uploadResult.Url;
+
+                var oldPublicId = CloudinaryHelper.ExtractPublicIdFromUrl(existingSubject.PhotoUrl);
+                if (!string.IsNullOrEmpty(oldPublicId))
+                {
+                    try { await _cloudinaryRepository.DeleteAsync(oldPublicId); }
+                    catch (Exception ex) { Console.WriteLine($"Failed to delete old photo: {ex.Message}"); }
+                }
+            }
+
+            var updated = await _repository.UpdateAsync(id, dto, newPhotoUrl);
             return Ok(updated);
         }
 
@@ -82,9 +104,14 @@ namespace childspace_backend.Controllers
                 return Forbid();
 
             var deleted = await _repository.DeleteAsync(id);
+            if (!deleted) return NotFound();
 
-            if (!deleted)
-                return NotFound();
+            var publicId = CloudinaryHelper.ExtractPublicIdFromUrl(existingSubject.PhotoUrl);
+            if (!string.IsNullOrEmpty(publicId))
+            {
+                try { await _cloudinaryRepository.DeleteAsync(publicId); }
+                catch (Exception ex) { Console.WriteLine($"Failed to delete photo: {ex.Message}"); }
+            }
 
             return NoContent();
         }
@@ -97,7 +124,6 @@ namespace childspace_backend.Controllers
             if (user == null) return Unauthorized();
 
             var subjects = await _repository.GetSubjectsByTeacherAsync(user.Id);
-
             return Ok(subjects);
         }
     }

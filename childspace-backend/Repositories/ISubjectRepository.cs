@@ -8,9 +8,9 @@ namespace childspace_backend.Repositories
 
         Task<SubjectDto?> GetByIdAsync(Guid id);
 
-        Task<SubjectDto> CreateAsync(SubjectCreateDto dto);
+        Task<SubjectDto> CreateAsync(SubjectCreateDto dto, string? photoUrl);
 
-        Task<SubjectDto?> UpdateAsync(Guid id, SubjectUpdateDto dto);
+        Task<SubjectDto?> UpdateAsync(Guid id, SubjectUpdateDto dto, string? photoUrl);
 
         Task<bool> DeleteAsync(Guid id);
 
