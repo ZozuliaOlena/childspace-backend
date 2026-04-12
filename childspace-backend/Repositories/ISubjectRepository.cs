@@ -4,7 +4,7 @@ namespace childspace_backend.Repositories
 {
     public interface ISubjectRepository
     {
-        Task<IEnumerable<SubjectDto>> GetAllAsync();
+        Task<IEnumerable<SubjectDto>> GetAllAsync(Guid? centerId = null);
 
         Task<SubjectDto?> GetByIdAsync(Guid id);
 
