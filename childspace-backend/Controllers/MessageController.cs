@@ -1,6 +1,8 @@
-﻿using childspace_backend.Models.DTOs;
+﻿using childspace_backend.Hubs;
+using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
 
 namespace childspace_backend.Controllers
@@ -10,10 +12,12 @@ namespace childspace_backend.Controllers
     public class MessageController : ControllerBase
     {
         private readonly IMessageRepository _repository;
+        private readonly IHubContext<ChatHub> _hubContext;
 
-        public MessageController(IMessageRepository repository)
+        public MessageController(IMessageRepository repository, IHubContext<ChatHub> hubContext)
         {
             _repository = repository;
+            _hubContext = hubContext;
         }
 
         [HttpGet]
@@ -88,6 +92,9 @@ namespace childspace_backend.Controllers
             try
             {
                 var message = await _repository.SendMessageAsync(userId, dto);
+
+                await _hubContext.Clients.Group(dto.ChatId.ToString()).SendAsync("ReceiveMessage", message);
+
                 return Ok(message);
             }
             catch (Exception ex)

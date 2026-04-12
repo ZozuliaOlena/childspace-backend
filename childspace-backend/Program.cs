@@ -1,5 +1,6 @@
 using childspace_backend.Data;
 using childspace_backend.DbInitializer;
+using childspace_backend.Hubs;
 using childspace_backend.Mappings;
 using childspace_backend.Models;
 using childspace_backend.Repositories;
@@ -9,7 +10,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
-using System.IdentityModel.Tokens.Jwt; // Добавлено для JwtSecurityTokenHandler
+using System.IdentityModel.Tokens.Jwt;
 
 namespace childspace_backend
 {
@@ -39,7 +40,7 @@ namespace childspace_backend
             })
             .AddJwtBearer(options =>
             {
-                options.SaveToken = true; 
+                options.SaveToken = true;
                 options.TokenValidationParameters = new TokenValidationParameters
                 {
                     ValidateIssuer = true,
@@ -50,6 +51,21 @@ namespace childspace_backend
                     ValidAudience = jwtSettings["Audience"],
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ClockSkew = TimeSpan.Zero
+                };
+
+                options.Events = new JwtBearerEvents
+                {
+                    OnMessageReceived = context =>
+                    {
+                        var accessToken = context.Request.Query["access_token"];
+                        var path = context.HttpContext.Request.Path;
+
+                        if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chathub"))
+                        {
+                            context.Token = accessToken;
+                        }
+                        return Task.CompletedTask;
+                    }
                 };
             });
 
@@ -72,6 +88,8 @@ namespace childspace_backend
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
+
+            builder.Services.AddSignalR();
 
             builder.Services.AddSwaggerGen(c =>
             {
@@ -108,9 +126,10 @@ namespace childspace_backend
                 options.AddPolicy("AllowFrontend",
                     policy =>
                     {
-                        policy.AllowAnyOrigin()
+                        policy.SetIsOriginAllowed(origin => true)
                               .AllowAnyHeader()
-                              .AllowAnyMethod();
+                              .AllowAnyMethod()
+                              .AllowCredentials();
                     });
             });
 
@@ -133,6 +152,8 @@ namespace childspace_backend
             app.UseAuthorization();
 
             app.MapControllers();
+
+            app.MapHub<ChatHub>("/chathub");
 
             app.Run();
         }
