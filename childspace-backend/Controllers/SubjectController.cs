@@ -28,7 +28,18 @@ namespace childspace_backend.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetAll([FromQuery] Guid? centerId)
         {
-            var subjects = await _repository.GetAllAsync(centerId);
+            Guid? filterCenterId = centerId; 
+
+            if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var user = await GetCurrentUserAsync();
+                if (user != null && user.CenterId != null)
+                {
+                    filterCenterId = user.CenterId;
+                }
+            }
+
+            var subjects = await _repository.GetAllAsync(filterCenterId);
             return Ok(subjects);
         }
 
