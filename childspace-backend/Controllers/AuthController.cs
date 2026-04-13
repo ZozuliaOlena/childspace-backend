@@ -64,6 +64,14 @@ namespace childspace_backend.Controllers
         [Authorize]
         public async Task<IActionResult> Logout()
         {
+            var user = await _userManager.GetUserAsync(User);
+
+            if (user != null)
+            {
+                user.FcmToken = null;
+                await _userManager.UpdateAsync(user);
+            }
+
             await _signInManager.SignOutAsync();
             return Ok(new { message = "Logged out" });
         }

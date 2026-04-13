@@ -12,6 +12,8 @@ namespace childspace_backend.Models
         public string FirstName { get; set; }
         public string LastName { get; set; }
 
+        public string? FcmToken { get; set; }
+
         public virtual ICollection<Child> Children { get; set; }
         public virtual ICollection<Group> TeachingGroups { get; set; }
         public virtual ICollection<UserChat> UserChats { get; set; }

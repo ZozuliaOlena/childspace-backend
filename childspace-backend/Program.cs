@@ -11,6 +11,9 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.IdentityModel.Tokens.Jwt;
+using FirebaseAdmin;
+using Google.Apis.Auth.OAuth2;
+using childspace_backend.Services;
 
 namespace childspace_backend
 {
@@ -84,6 +87,7 @@ namespace childspace_backend
             builder.Services.AddScoped<IChatRepository, ChatRepository>();
             builder.Services.AddScoped<IUserChatRepository, UserChatRepository>();
             builder.Services.AddScoped<IMessageRepository, MessageRepository>();
+            builder.Services.AddScoped<IFirebaseNotificationService, FirebaseNotificationService>();
 
             builder.Services.AddAutoMapper(typeof(MappingProfile));
             builder.Services.AddControllers();
@@ -134,6 +138,20 @@ namespace childspace_backend
             });
 
             var app = builder.Build();
+
+            var firebaseKeyPath = Path.Combine(builder.Environment.ContentRootPath, "childspace-11ef4-firebase-adminsdk-fbsvc-a09628f20f.json");
+            if (File.Exists(firebaseKeyPath))
+            {
+                FirebaseApp.Create(new AppOptions()
+                {
+                    Credential = GoogleCredential.FromFile(firebaseKeyPath)
+                });
+                Console.WriteLine("Firebase успішно ініціалізований!");
+            }
+            else
+            {
+                Console.WriteLine("Увага: файл ключа Firebase не знайдено за шляхом: " + firebaseKeyPath);
+            }
 
             SeedDatabase();
             void SeedDatabase()

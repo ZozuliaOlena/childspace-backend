@@ -1,6 +1,9 @@
 ﻿using childspace_backend.Hubs;
+using childspace_backend.Models;
 using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Services;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using System.Security.Claims;
@@ -9,15 +12,24 @@ namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class MessageController : ControllerBase
+    public class MessageController : BaseController
     {
         private readonly IMessageRepository _repository;
         private readonly IHubContext<ChatHub> _hubContext;
+        private readonly IChatRepository _chatRepository;
+        private readonly IFirebaseNotificationService _firebaseService;
 
-        public MessageController(IMessageRepository repository, IHubContext<ChatHub> hubContext)
+        public MessageController(
+            IMessageRepository repository,
+            IHubContext<ChatHub> hubContext,
+            IChatRepository chatRepository,
+            IFirebaseNotificationService firebaseService,
+            UserManager<User> userManager) : base(userManager)
         {
             _repository = repository;
             _hubContext = hubContext;
+            _chatRepository = chatRepository;
+            _firebaseService = firebaseService;
         }
 
         [HttpGet]
@@ -82,18 +94,30 @@ namespace childspace_backend.Controllers
         [HttpPost("send")]
         public async Task<ActionResult<ChatMessageResponseDto>> SendMessage([FromBody] SendMessageDto dto)
         {
-            var userIdString = User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-
-            if (!Guid.TryParse(userIdString, out var userId))
-            {
-                return Unauthorized(new { message = "Invalid user token" });
-            }
+            var sender = await GetCurrentUserAsync();
+            if (sender == null) return Unauthorized();
 
             try
             {
-                var message = await _repository.SendMessageAsync(userId, dto);
+                var message = await _repository.SendMessageAsync(sender.Id, dto);
 
                 await _hubContext.Clients.Group(dto.ChatId.ToString()).SendAsync("ReceiveMessage", message);
+
+                var participants = await _chatRepository.GetChatParticipantsAsync(dto.ChatId);
+
+                foreach (var participant in participants)
+                {
+                    if (participant.Id != sender.Id)
+                    {
+                        var receiver = await _userManager.FindByIdAsync(participant.Id.ToString());
+
+                        if (receiver != null && !string.IsNullOrEmpty(receiver.FcmToken))
+                        {
+                            string title = $"Нове повідомлення від {sender.FirstName}";
+                            await _firebaseService.SendNotificationAsync(receiver.FcmToken, title, dto.Content);
+                        }
+                    }
+                }
 
                 return Ok(message);
             }

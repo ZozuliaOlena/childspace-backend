@@ -173,6 +173,25 @@ namespace childspace_backend.Controllers
             return Ok(userDto);
         }
 
+        [HttpPost("fcm-token")]
+        public async Task<IActionResult> UpdateFcmToken([FromBody] string fcmToken)
+        {
+            if (string.IsNullOrEmpty(fcmToken))
+                return BadRequest(new { message = "Токен не може бути порожнім" });
+
+            var user = await GetCurrentUserAsync();
+            if (user == null) return Unauthorized();
+
+            user.FcmToken = fcmToken;
+
+            var result = await _userManager.UpdateAsync(user);
+
+            if (!result.Succeeded)
+                return BadRequest(new { message = "Помилка при збереженні токена" });
+
+            return Ok(new { message = "FCM токен успішно оновлено" });
+        }
+
         [HttpGet("available-for-chat")]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<IEnumerable<UserDto>>> GetAvailableUsersForChat()
