@@ -84,5 +84,15 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<IEnumerable<AttendanceDto>> GetByLessonIdAsync(Guid lessonId)
+        {
+            var attendances = await _context.Attendances
+                .Include(a => a.Child) 
+                .Where(a => a.LessonId == lessonId) 
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<AttendanceDto>>(attendances);
+        }
     }
 }

@@ -66,5 +66,12 @@ namespace childspace_backend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("lesson/{lessonId:guid}")]
+        public async Task<ActionResult<IEnumerable<AttendanceDto>>> GetByLessonId(Guid lessonId)
+        {
+            var attendances = await _repository.GetByLessonIdAsync(lessonId);
+            return Ok(attendances);
+        }
     }
 }
