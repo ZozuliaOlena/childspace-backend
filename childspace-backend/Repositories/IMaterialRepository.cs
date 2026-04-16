@@ -4,7 +4,7 @@ namespace childspace_backend.Repositories
 {
     public interface IMaterialRepository
     {
-        Task<IEnumerable<MaterialDto>> GetAllAsync(Guid? centerId = null, Guid? subjectId = null);
+        Task<IEnumerable<MaterialDto>> GetAllAsync(Guid? centerId = null, Guid? subjectId = null, Guid? groupId = null);
 
         Task<MaterialDto?> GetByIdAsync(Guid id);
 

@@ -17,16 +17,17 @@ namespace childspace_backend.Repositories
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<MaterialDto>> GetAllAsync(Guid? centerId = null, Guid? subjectId = null) 
+        public async Task<IEnumerable<MaterialDto>> GetAllAsync(Guid? centerId = null, Guid? subjectId = null, Guid? groupId = null)
         {
             var query = _context.Materials
                 .Include(m => m.Subject)
                 .Include(m => m.Teacher)
+                .Include(m => m.Group) 
                 .AsQueryable();
 
             if (centerId.HasValue)
             {
-                query = query.Where(m => m.Subject.CenterId == centerId.Value);
+                query = query.Where(m => m.CenterId == centerId.Value);
             }
 
             if (subjectId.HasValue)
@@ -34,24 +35,14 @@ namespace childspace_backend.Repositories
                 query = query.Where(m => m.SubjectId == subjectId.Value);
             }
 
-            var materials = await query.ToListAsync();
-
-            var dtos = _mapper.Map<List<MaterialDto>>(materials);
-
-            foreach (var dto in dtos)
+            if (groupId.HasValue)
             {
-                var originalMaterial = materials.First(m => m.Id == dto.Id);
-                if (originalMaterial.Teacher != null)
-                {
-                    dto.TeacherName = $"{originalMaterial.Teacher.FirstName} {originalMaterial.Teacher.LastName}";
-                }
-                if (originalMaterial.Subject != null)
-                {
-                    dto.SubjectName = originalMaterial.Subject.Name;
-                }
+                query = query.Where(m => m.GroupId == groupId.Value);
             }
 
-            return dtos;
+            var materials = await query.ToListAsync();
+
+            return _mapper.Map<List<MaterialDto>>(materials);
         }
 
         public async Task<MaterialDto?> GetByIdAsync(Guid id)
