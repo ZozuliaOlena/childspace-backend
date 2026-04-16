@@ -129,14 +129,12 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ScheduleDto>> GetByTeacherIdAsync(Guid teacherId)
         {
-            var now = DateTime.UtcNow;
-
             var schedules = await _context.Schedules
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
-                .Where(s => s.TeacherId == teacherId && s.EndTime >= now)
-                .OrderBy(s => s.StartTime)
+                .Where(s => s.TeacherId == teacherId)
+                .OrderBy(s => s.StartTime) 
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
@@ -147,8 +145,6 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ScheduleDto>> GetByParentIdAsync(Guid parentId)
         {
-            var now = DateTime.UtcNow;
-
             var childrenIds = await _context.Children
                 .Where(c => c.ParentId == parentId)
                 .Select(c => c.Id)
@@ -163,7 +159,7 @@ namespace childspace_backend.Repositories
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
-                .Where(s => groupIds.Contains(s.GroupId) && s.EndTime >= now)
+                .Where(s => groupIds.Contains(s.GroupId))
                 .OrderBy(s => s.StartTime)
                 .ToListAsync();
 
@@ -175,14 +171,12 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId)
         {
-            var now = DateTime.UtcNow; 
-
             var schedules = await _context.Schedules
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
-                .Where(s => s.GroupId == groupId && s.EndTime >= now)
-                .OrderBy(s => s.StartTime) 
+                .Where(s => s.GroupId == groupId)
+                .OrderBy(s => s.StartTime)
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
