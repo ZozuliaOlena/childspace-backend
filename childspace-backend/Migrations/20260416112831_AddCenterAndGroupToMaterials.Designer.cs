@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using childspace_backend.Data;
 
@@ -11,9 +12,11 @@ using childspace_backend.Data;
 namespace childspace_backend.Migrations
 {
     [DbContext(typeof(ChildSpaceDbContext))]
-    partial class ChildSpaceDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260416112831_AddCenterAndGroupToMaterials")]
+    partial class AddCenterAndGroupToMaterials
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

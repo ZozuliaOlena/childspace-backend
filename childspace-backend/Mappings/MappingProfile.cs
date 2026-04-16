@@ -24,7 +24,10 @@ namespace childspace_backend.Mappings
             CreateMap<Attendance, AttendanceDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
 
-            CreateMap<Material, MaterialDto>();
+            CreateMap<Material, MaterialDto>()
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group != null ? src.Group.Name : null))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject.Name))
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher.FirstName + " " + src.Teacher.LastName));
 
             CreateMap<Message, MessageDto>();
 

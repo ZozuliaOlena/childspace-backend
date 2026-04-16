@@ -143,6 +143,18 @@ namespace childspace_backend.Data
                 .WithMany(uc => uc.Messages)
                 .HasForeignKey(m => m.UserChatId)
                 .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.Center)
+                .WithMany() 
+                .HasForeignKey(m => m.CenterId)
+                .OnDelete(DeleteBehavior.Restrict); 
+
+            modelBuilder.Entity<Material>()
+                .HasOne(m => m.Group)
+                .WithMany(g => g.Materials) 
+                .HasForeignKey(m => m.GroupId)
+                .OnDelete(DeleteBehavior.SetNull);
         }
     }
 }

@@ -9,8 +9,15 @@ namespace childspace_backend.Models
         [Key]
         public Guid Id { get; set; } = Guid.NewGuid();
 
-        public Guid SubjectId { get; set; }
+        public Guid CenterId { get; set; }
+        [ForeignKey("CenterId")]
+        public virtual Center Center { get; set; }
 
+        public Guid? GroupId { get; set; } 
+        [ForeignKey("GroupId")]
+        public virtual Group Group { get; set; }
+
+        public Guid SubjectId { get; set; }
         [ForeignKey("SubjectId")]
         public virtual Subject Subject { get; set; }
 
