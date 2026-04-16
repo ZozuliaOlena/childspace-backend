@@ -66,5 +66,12 @@ namespace childspace_backend.Controllers
 
             return NoContent();
         }
+
+        [HttpGet("{id:guid}/children")]
+        public async Task<ActionResult<IEnumerable<ChildDto>>> GetGroupChildren(Guid id)
+        {
+            var children = await _repository.GetChildrenByGroupIdAsync(id);
+            return Ok(children);
+        }
     }
 }

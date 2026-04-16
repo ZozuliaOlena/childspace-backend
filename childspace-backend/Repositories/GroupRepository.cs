@@ -95,5 +95,17 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<IEnumerable<ChildDto>> GetChildrenByGroupIdAsync(Guid groupId)
+        {
+            var groupChildren = await _context.GroupChildren
+                .Include(gc => gc.Child)
+                .Where(gc => gc.GroupId == groupId)
+                .ToListAsync();
+
+            var children = groupChildren.Select(gc => gc.Child);
+
+            return _mapper.Map<IEnumerable<ChildDto>>(children);
+        }
     }
 }
