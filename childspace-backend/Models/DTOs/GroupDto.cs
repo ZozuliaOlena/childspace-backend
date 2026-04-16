@@ -11,6 +11,9 @@ namespace childspace_backend.Models.DTOs
 
         public Guid? TeacherId { get; set; }
 
+        public Guid SubjectId { get; set; }
+        public string? SubjectName { get; set; }
+
         public string? Description { get; set; }
 
         [JsonIgnore]

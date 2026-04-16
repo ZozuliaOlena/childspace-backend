@@ -6,6 +6,8 @@
 
         public Guid? TeacherId { get; set; }
 
+        public Guid SubjectId { get; set; }
+
         public string? Description { get; set; }
     }
 }

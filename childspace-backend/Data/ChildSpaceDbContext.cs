@@ -78,6 +78,12 @@ namespace childspace_backend.Data
                 .HasForeignKey(s => s.GroupId)
                 .OnDelete(DeleteBehavior.Cascade);
 
+            modelBuilder.Entity<Group>()
+                .HasOne(g => g.Subject)
+                .WithMany()
+                .HasForeignKey(g => g.SubjectId)
+                .OnDelete(DeleteBehavior.Restrict);
+
             modelBuilder.Entity<Subject>()
                 .HasMany(s => s.Materials)
                 .WithOne(m => m.Subject)

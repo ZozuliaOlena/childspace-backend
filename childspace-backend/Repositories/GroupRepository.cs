@@ -22,6 +22,7 @@ namespace childspace_backend.Repositories
             var groups = await _context.Groups
                 .Include(g => g.Center)
                 .Include(g => g.Teacher)
+                .Include(g => g.Subject) 
                 .Include(g => g.GroupChildren)
                 .Include(g => g.Schedules)
                 .Include(g => g.Materials)
@@ -35,6 +36,7 @@ namespace childspace_backend.Repositories
             var group = await _context.Groups
                 .Include(g => g.Center)
                 .Include(g => g.Teacher)
+                .Include(g => g.Subject) 
                 .Include(g => g.GroupChildren)
                 .Include(g => g.Schedules)
                 .Include(g => g.Materials)
@@ -54,6 +56,7 @@ namespace childspace_backend.Repositories
                 Name = dto.Name,
                 CenterId = dto.CenterId,
                 TeacherId = dto.TeacherId,
+                SubjectId = dto.SubjectId, 
                 Description = dto.Description
             };
 
@@ -72,6 +75,7 @@ namespace childspace_backend.Repositories
 
             group.Name = dto.Name;
             group.TeacherId = dto.TeacherId;
+            group.SubjectId = dto.SubjectId; 
             group.Description = dto.Description;
 
             await _context.SaveChangesAsync();

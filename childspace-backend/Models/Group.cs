@@ -19,6 +19,10 @@ namespace childspace_backend.Models
         [ForeignKey("TeacherId")]
         public virtual User Teacher { get; set; }
 
+        public Guid? SubjectId { get; set; }
+        [ForeignKey("SubjectId")]
+        public virtual Subject Subject { get; set; }
+
         public string? Description { get; set; }
 
         public virtual ICollection<GroupChild> GroupChildren { get; set; }
