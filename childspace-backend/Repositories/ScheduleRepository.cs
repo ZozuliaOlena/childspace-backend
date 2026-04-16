@@ -129,11 +129,14 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ScheduleDto>> GetByTeacherIdAsync(Guid teacherId)
         {
+            var now = DateTime.UtcNow;
+
             var schedules = await _context.Schedules
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
-                .Where(s => s.TeacherId == teacherId)
+                .Where(s => s.TeacherId == teacherId && s.EndTime >= now)
+                .OrderBy(s => s.StartTime)
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
@@ -144,6 +147,8 @@ namespace childspace_backend.Repositories
 
         public async Task<IEnumerable<ScheduleDto>> GetByParentIdAsync(Guid parentId)
         {
+            var now = DateTime.UtcNow;
+
             var childrenIds = await _context.Children
                 .Where(c => c.ParentId == parentId)
                 .Select(c => c.Id)
@@ -158,7 +163,26 @@ namespace childspace_backend.Repositories
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
-                .Where(s => groupIds.Contains(s.GroupId))
+                .Where(s => groupIds.Contains(s.GroupId) && s.EndTime >= now)
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
+
+            var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
+            MapNamesToDtos(schedules, dtos);
+
+            return dtos;
+        }
+
+        public async Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId)
+        {
+            var now = DateTime.UtcNow; 
+
+            var schedules = await _context.Schedules
+                .Include(s => s.Group)
+                .Include(s => s.Teacher)
+                .Include(s => s.Subject)
+                .Where(s => s.GroupId == groupId && s.EndTime >= now)
+                .OrderBy(s => s.StartTime) 
                 .ToListAsync();
 
             var dtos = _mapper.Map<List<ScheduleDto>>(schedules);
@@ -181,19 +205,6 @@ namespace childspace_backend.Repositories
                     dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
                 }
             }
-        }
-
-        public async Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId)
-        {
-            var schedules = await _context.Schedules
-                .Include(s => s.Group)
-                .Include(s => s.Teacher)
-                .Include(s => s.Subject)
-                .Where(s => s.GroupId == groupId)
-                .OrderBy(s => s.StartTime)
-                .ToListAsync();
-
-            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
         }
     }
 }
