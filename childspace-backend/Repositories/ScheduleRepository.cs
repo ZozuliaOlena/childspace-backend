@@ -182,5 +182,18 @@ namespace childspace_backend.Repositories
                 }
             }
         }
+
+        public async Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId)
+        {
+            var schedules = await _context.Schedules
+                .Include(s => s.Group)
+                .Include(s => s.Teacher)
+                .Include(s => s.Subject)
+                .Where(s => s.GroupId == groupId)
+                .OrderBy(s => s.StartTime)
+                .ToListAsync();
+
+            return _mapper.Map<IEnumerable<ScheduleDto>>(schedules);
+        }
     }
 }

@@ -17,5 +17,7 @@ namespace childspace_backend.Repositories
         Task<IEnumerable<ScheduleDto>> GetByTeacherIdAsync(Guid teacherId);
 
         Task<IEnumerable<ScheduleDto>> GetByParentIdAsync(Guid parentId);
+
+        Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId);
     }
 }

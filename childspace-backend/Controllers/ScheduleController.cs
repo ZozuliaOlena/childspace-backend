@@ -109,5 +109,13 @@ namespace childspace_backend.Controllers
             var schedules = await _repository.GetByParentIdAsync(user.Id);
             return Ok(schedules);
         }
+
+        [HttpGet("group/{groupId:guid}")]
+        [Authorize]
+        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetByGroup(Guid groupId)
+        {
+            var schedules = await _repository.GetByGroupIdAsync(groupId);
+            return Ok(schedules);
+        }
     }
 }
