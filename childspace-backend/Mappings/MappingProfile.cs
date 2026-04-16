@@ -18,8 +18,11 @@ namespace childspace_backend.Mappings
             CreateMap<GroupChild, GroupChildDto>();
 
             CreateMap<Center, CenterDto>();
- 
-            CreateMap<Schedule, ScheduleDto>();
+
+            CreateMap<Schedule, ScheduleDto>()
+                .ForMember(dest => dest.GroupName, opt => opt.MapFrom(src => src.Group != null ? src.Group.Name : null))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject != null ? src.Subject.Name : null))
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher != null ? (src.Teacher.FirstName + " " + src.Teacher.LastName) : null));
 
             CreateMap<Attendance, AttendanceDto>()
                 .ForMember(dest => dest.Status, opt => opt.MapFrom(src => src.Status.ToString()));
