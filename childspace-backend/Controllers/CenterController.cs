@@ -22,18 +22,18 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        [AllowAnonymous] 
         public async Task<IActionResult> GetAll()
         {
             Guid? filterCenterId = null;
 
-            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                var user = await GetCurrentUserAsync();
-                filterCenterId = user?.CenterId;
-
-                if (filterCenterId == null)
-                    return Forbid();
+                if (User.IsInRole(StaticDetail.Role_CenterAdmin))
+                {
+                    var user = await GetCurrentUserAsync();
+                    filterCenterId = user?.CenterId;
+                }
             }
 
             var centers = await _repository.GetAllAsync(filterCenterId);
