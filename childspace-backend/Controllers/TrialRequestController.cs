@@ -8,7 +8,6 @@ namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
     public class TrialRequestController : ControllerBase
     {
         private readonly ITrialRequestRepository _repository;
@@ -19,6 +18,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<IEnumerable<TrialRequestDto>>> GetAll()
         {
             var requests = await _repository.GetAllAsync();
@@ -26,6 +26,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<TrialRequestDto>> GetById(Guid id)
         {
             var request = await _repository.GetByIdAsync(id);
@@ -37,6 +38,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [AllowAnonymous]
         public async Task<ActionResult<TrialRequestDto>> Create(TrialRequestCreateDto dto)
         {
             var created = await _repository.CreateAsync(dto);
@@ -49,6 +51,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<TrialRequestDto>> Update(Guid id, TrialRequestUpdateDto dto)
         {
             var updated = await _repository.UpdateAsync(id, dto);
@@ -60,6 +63,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var deleted = await _repository.DeleteAsync(id);
