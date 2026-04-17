@@ -14,7 +14,7 @@ namespace childspace_backend.Models.DTOs
         public string Phone { get; set; }
         public string Email { get; set; }
         public string ChildName { get; set; }
-        public Guid ChildAge { get; set; }
+        public int ChildAge { get; set; }
         public string? Comment { get; set; }
         public DateTime CreatedAt { get; set; }
     }

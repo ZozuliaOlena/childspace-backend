@@ -10,7 +10,7 @@
 
         public string ChildName { get; set; }
 
-        public Guid ChildAge { get; set; }
+        public int ChildAge { get; set; }
 
         public string? Comment { get; set; }
     }
