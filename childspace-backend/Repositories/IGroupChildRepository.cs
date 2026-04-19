@@ -13,5 +13,7 @@ namespace childspace_backend.Repositories
         Task<GroupChildDto?> UpdateAsync(Guid id, GroupChildUpdateDto dto);
 
         Task<bool> DeleteAsync(Guid id);
+
+        Task<bool> DeleteByGroupAndChildAsync(Guid groupId, Guid childId);
     }
 }

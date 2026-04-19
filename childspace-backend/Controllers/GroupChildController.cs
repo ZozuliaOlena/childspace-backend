@@ -66,5 +66,16 @@ namespace childspace_backend.Controllers
 
             return NoContent();
         }
+
+        [HttpDelete("~/api/Group/{groupId:guid}/child/{childId:guid}")]
+        public async Task<ActionResult> DeleteByGroupAndChild(Guid groupId, Guid childId)
+        {
+            var deleted = await _repository.DeleteByGroupAndChildAsync(groupId, childId);
+
+            if (!deleted)
+                return NotFound(new { message = "Ця дитина не перебуває у цій групі." });
+
+            return NoContent();
+        }
     }
 }

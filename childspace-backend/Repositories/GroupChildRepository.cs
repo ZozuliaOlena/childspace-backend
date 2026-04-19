@@ -82,5 +82,18 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<bool> DeleteByGroupAndChildAsync(Guid groupId, Guid childId)
+        {
+            var groupChild = await _context.GroupChildren
+                .FirstOrDefaultAsync(gc => gc.GroupId == groupId && gc.ChildId == childId);
+
+            if (groupChild == null)
+                return false;
+
+            _context.GroupChildren.Remove(groupChild);
+            await _context.SaveChangesAsync();
+            return true;
+        }
     }
 }
