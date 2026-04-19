@@ -5,6 +5,7 @@ using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
 
 namespace childspace_backend.Controllers
@@ -244,6 +245,51 @@ namespace childspace_backend.Controllers
 
             var teachers = await _repository.GetUsersByRoleAsync(StaticDetail.Role_Teacher, filterCenterId);
             return Ok(teachers);
+        }
+
+        [HttpGet("profile")]
+        [Authorize]
+        public async Task<IActionResult> GetMobileProfile()
+        {
+            var user = await GetCurrentUserAsync();
+
+            if (user == null)
+                return NotFound(new { message = "User not found in database." });
+
+            var userWithDetails = await _userManager.Users
+                .Include(u => u.Children)
+                    .ThenInclude(c => c.GroupChildren)
+                        .ThenInclude(gc => gc.Group)
+                .FirstOrDefaultAsync(u => u.Id == user.Id);
+
+            if (userWithDetails == null) return NotFound();
+
+            var roles = await _userManager.GetRolesAsync(userWithDetails);
+            var mainRole = roles.FirstOrDefault() ?? "Користувач";
+
+            var profileDto = new UserProfileDto
+            {
+                FirstName = userWithDetails.FirstName,
+                LastName = userWithDetails.LastName,
+                Email = userWithDetails.Email,
+                Role = mainRole,
+                Children = userWithDetails.Children.Select(child => new ChildProfileDto
+                {
+                    Name = $"{child.FirstName} {child.LastName}",
+                    Age = CalculateAge(child.BirthDate),
+                    GroupName = child.GroupChildren.FirstOrDefault()?.Group?.Name
+                }).ToList()
+            };
+
+            return Ok(profileDto);
+        }
+
+        private static int CalculateAge(DateTime birthDate)
+        {
+            var today = DateTime.Today;
+            var age = today.Year - birthDate.Year;
+            if (birthDate.Date > today.AddYears(-age)) age--;
+            return age;
         }
     }
 }
