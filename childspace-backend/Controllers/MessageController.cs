@@ -84,10 +84,15 @@ namespace childspace_backend.Controllers
             return NoContent();
         }
 
+
         [HttpGet("chat/{chatId:guid}")]
-        public async Task<ActionResult<IEnumerable<ChatMessageResponseDto>>> GetChatMessages(Guid chatId)
+        public async Task<ActionResult<IEnumerable<ChatMessageResponseDto>>> GetChatMessages(
+            Guid chatId,
+            [FromQuery] int page = 1,
+            [FromQuery] int pageSize = 50)
         {
-            var messages = await _repository.GetMessagesByChatIdAsync(chatId);
+            var messages = await _repository.GetMessagesByChatIdAsync(chatId, page, pageSize);
+
             return Ok(messages);
         }
 

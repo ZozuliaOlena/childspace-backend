@@ -14,7 +14,7 @@ namespace childspace_backend.Repositories
 
         Task<bool> DeleteAsync(Guid id);
 
-        Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId);
+        Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId, int page = 1, int pageSize = 50);
         Task<ChatMessageResponseDto> SendMessageAsync(Guid userId, SendMessageDto dto);
     }
 }

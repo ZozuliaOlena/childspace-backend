@@ -80,13 +80,15 @@ namespace childspace_backend.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId)
+        public async Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId, int page = 1, int pageSize = 50)
         {
             var messages = await _context.Messages
                 .Include(m => m.UserChat)
                     .ThenInclude(uc => uc.User)
                 .Where(m => m.UserChat.ChatId == chatId)
-                .OrderBy(m => m.CreatedAt) 
+                .OrderByDescending(m => m.CreatedAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(m => new ChatMessageResponseDto
                 {
                     Id = m.Id,
@@ -96,6 +98,8 @@ namespace childspace_backend.Repositories
                     SenderName = m.UserChat.User.FirstName + " " + m.UserChat.User.LastName
                 })
                 .ToListAsync();
+
+            messages.Reverse();
 
             return messages;
         }
