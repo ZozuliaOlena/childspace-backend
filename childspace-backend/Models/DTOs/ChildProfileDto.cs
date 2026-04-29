@@ -4,6 +4,6 @@
     {
         public string Name { get; set; }
         public int Age { get; set; }
-        public string? GroupName { get; set; }
+        public List<string> GroupNames { get; set; }
     }
 }

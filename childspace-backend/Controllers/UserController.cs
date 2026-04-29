@@ -278,7 +278,7 @@ namespace childspace_backend.Controllers
                 {
                     Name = $"{child.FirstName} {child.LastName}",
                     Age = CalculateAge(child.BirthDate),
-                    GroupName = child.GroupChildren.FirstOrDefault()?.Group?.Name
+                    GroupNames = child.GroupChildren.Select(gc => gc.Group.Name).ToList()
                 }).ToList()
             };
 
