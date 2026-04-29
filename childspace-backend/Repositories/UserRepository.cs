@@ -146,6 +146,27 @@ namespace childspace_backend.Repositories
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
 
+            if (dto.Roles != null)
+            {
+                var currentRoles = await _userManager.GetRolesAsync(user);
+
+                await _userManager.RemoveFromRolesAsync(user, currentRoles);
+
+                var validRoles = new List<string>
+                {
+                    StaticDetail.Role_SuperAdmin,
+                    StaticDetail.Role_CenterAdmin,
+                    StaticDetail.Role_Teacher,
+                    StaticDetail.Role_Parent
+                };
+                var rolesToAdd = dto.Roles.Where(r => validRoles.Contains(r)).ToList();
+
+                if (rolesToAdd.Any())
+                {
+                    await _userManager.AddToRolesAsync(user, rolesToAdd);
+                }
+            }
+
             return await GetByIdAsync(id);
         }
 
