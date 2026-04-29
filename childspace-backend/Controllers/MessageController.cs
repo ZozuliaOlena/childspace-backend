@@ -108,7 +108,7 @@ namespace childspace_backend.Controllers
 
                 await _hubContext.Clients.Group(dto.ChatId.ToString()).SendAsync("ReceiveMessage", message);
 
-                var participants = (await _chatRepository.GetChatParticipantsAsync(dto.ChatId)).ToList();
+                var participants = await _chatRepository.GetChatParticipantsAsync(dto.ChatId);
 
                 foreach (var participant in participants)
                 {

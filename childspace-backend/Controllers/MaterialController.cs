@@ -72,16 +72,6 @@ namespace childspace_backend.Controllers
             {
                 return BadRequest(new { message = "Будь ласка, додайте файл або вставте посилання" });
             }
-            var currentUser = await GetCurrentUserAsync();
-
-            if (currentUser?.CenterId != null)
-            {
-                dto.CenterId = (Guid)currentUser.CenterId;
-            }
-            else if (dto.CenterId == Guid.Empty)
-            {
-                return BadRequest(new { message = "Не вказано ідентифікатор дитячого центру" });
-            }
 
             var created = await _repository.CreateAsync(dto, finalUrl);
 

@@ -76,8 +76,7 @@ namespace childspace_backend.Repositories
                 FileUrl = fileUrl,
                 Description = dto.Description,
                 Type = dto.Type,
-                CreatedAt = DateTime.UtcNow,
-                CenterId = dto.CenterId
+                CreatedAt = DateTime.UtcNow
             };
 
             _context.Materials.Add(material);
