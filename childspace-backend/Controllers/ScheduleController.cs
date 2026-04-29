@@ -89,25 +89,25 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("my")]
-        [Authorize(Roles = StaticDetail.Role_Teacher)]
+        [Authorize(Roles = $"{StaticDetail.Role_Teacher},{StaticDetail.Role_Parent}")]
         public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetMySchedule()
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return Unauthorized();
 
-            var schedules = await _repository.GetByTeacherIdAsync(user.Id);
-            return Ok(schedules);
-        }
+            if (User.IsInRole(StaticDetail.Role_Teacher))
+            {
+                var schedules = await _repository.GetByTeacherIdAsync(user.Id);
+                return Ok(schedules);
+            }
 
-        [HttpGet("children")]
-        [Authorize(Roles = StaticDetail.Role_Parent)]
-        public async Task<ActionResult<IEnumerable<ScheduleDto>>> GetChildrenSchedule()
-        {
-            var user = await GetCurrentUserAsync();
-            if (user == null) return Unauthorized();
+            if (User.IsInRole(StaticDetail.Role_Parent))
+            {
+                var schedules = await _repository.GetByParentIdAsync(user.Id);
+                return Ok(schedules);
+            }
 
-            var schedules = await _repository.GetByParentIdAsync(user.Id);
-            return Ok(schedules);
+            return Forbid();
         }
 
         [HttpGet("group/{groupId:guid}")]
