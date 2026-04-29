@@ -272,6 +272,7 @@ namespace childspace_backend.Controllers
                 FirstName = userWithDetails.FirstName,
                 LastName = userWithDetails.LastName,
                 Email = userWithDetails.Email,
+                PhoneNumber = userWithDetails.PhoneNumber,
                 Role = mainRole,
                 Children = userWithDetails.Children.Select(child => new ChildProfileDto
                 {

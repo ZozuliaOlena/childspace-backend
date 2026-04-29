@@ -73,6 +73,7 @@ namespace childspace_backend.Repositories
                 Id = Guid.NewGuid(),
                 Email = dto.Email,
                 UserName = dto.Email,
+                PhoneNumber = dto.PhoneNumber,
                 FirstName = dto.FirstName,
                 LastName = dto.LastName,
                 CenterId = dto.CenterId
@@ -135,6 +136,7 @@ namespace childspace_backend.Repositories
 
             user.Email = dto.Email;
             user.UserName = dto.Email;
+            user.PhoneNumber = dto.PhoneNumber;
             user.FirstName = dto.FirstName;
             user.LastName = dto.LastName;
             user.CenterId = dto.CenterId;
