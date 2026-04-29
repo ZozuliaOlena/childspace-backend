@@ -124,5 +124,22 @@ namespace childspace_backend.Controllers
 
             return Ok(new { message = "Користувача успішно видалено з чату" });
         }
+
+        [HttpPost("{chatId:guid}/mark-read")]
+        [Authorize]
+        public async Task<IActionResult> MarkAsRead(Guid chatId)
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+                return Unauthorized();
+
+            var result = await _repository.MarkChatAsReadAsync(chatId, userId);
+
+            if (!result)
+                return NotFound(new { message = "Чат не знайдено або ви не є його учасником" });
+
+            return Ok(new { message = "Чат позначено як прочитаний" });
+        }
     }
 }

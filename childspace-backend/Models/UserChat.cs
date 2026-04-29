@@ -16,6 +16,8 @@ namespace childspace_backend.Models
         [ForeignKey("ChatId")]
         public virtual Chat Chat { get; set; }
 
+        public DateTime? LastReadAt { get; set; }
+
         public virtual ICollection<Message> Messages { get; set; }
     }
 }

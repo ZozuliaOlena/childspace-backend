@@ -176,7 +176,14 @@ namespace childspace_backend.Repositories
                             SenderId = m.UserChat.UserId,
                             SenderName = m.UserChat.User.FirstName + " " + m.UserChat.User.LastName
                         })
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+
+                    HasUnreadMessages = _context.Messages
+                        .Where(m => m.UserChat.ChatId == chat.Id)
+                        .Any(m => m.CreatedAt > (_context.UserChats
+                            .Where(uc => uc.ChatId == chat.Id && uc.UserId == userId)
+                            .Select(uc => uc.LastReadAt)
+                            .FirstOrDefault() ?? DateTime.MinValue))
                 })
                 .ToListAsync();
 
@@ -186,12 +193,27 @@ namespace childspace_backend.Repositories
                 Name = x.Chat.Name,
                 CreatedAt = x.Chat.CreatedAt,
                 ParticipantsCount = x.ParticipantCount,
-                LastMessage = x.LastMessage
+                LastMessage = x.LastMessage,
+                HasUnreadMessages = x.HasUnreadMessages
             })
             .OrderByDescending(c => c.LastMessage?.CreatedAt ?? c.CreatedAt)
             .ToList();
 
             return chatDtos;
+        }
+
+        public async Task<bool> MarkChatAsReadAsync(Guid chatId, Guid userId)
+        {
+            var userChat = await _context.UserChats
+                .FirstOrDefaultAsync(uc => uc.ChatId == chatId && uc.UserId == userId);
+
+            if (userChat == null)
+                return false;
+
+            userChat.LastReadAt = DateTime.UtcNow;
+            await _context.SaveChangesAsync();
+
+            return true;
         }
     }
 }
