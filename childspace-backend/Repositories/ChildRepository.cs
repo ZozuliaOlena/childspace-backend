@@ -119,6 +119,20 @@ namespace childspace_backend.Repositories
             child.BirthDate = dto.BirthDate;
             child.Notes = dto.Notes;
 
+            if (dto.ParentId.HasValue && dto.ParentId.Value != Guid.Empty)
+            {
+                var newParent = await _context.Users.FindAsync(dto.ParentId.Value);
+                if (newParent == null)
+                    throw new Exception("Новий батько не знайдений у базі даних.");
+
+                child.ParentId = dto.ParentId.Value;
+
+                if (newParent.CenterId.HasValue)
+                {
+                    child.CenterId = newParent.CenterId.Value;
+                }
+            }
+
             await _context.SaveChangesAsync();
 
             return new ChildDto

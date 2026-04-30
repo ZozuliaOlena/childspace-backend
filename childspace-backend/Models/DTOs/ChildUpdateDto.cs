@@ -6,5 +6,7 @@
         public string LastName { get; set; }
         public DateTime BirthDate { get; set; }
         public string? Notes { get; set; }
+
+        public Guid? ParentId { get; set; }
     }
 }
