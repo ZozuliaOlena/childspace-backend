@@ -1,10 +1,13 @@
-﻿using childspace_backend.Models;
+﻿using childspace_backend.Data;
+using childspace_backend.Models;
 using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Services;
 using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace childspace_backend.Controllers
 {
@@ -14,11 +17,19 @@ namespace childspace_backend.Controllers
     public class ScheduleController : BaseController
     {
         private readonly IScheduleRepository _repository;
+        private readonly IFirebaseNotificationService _notificationService;
+        private readonly ChildSpaceDbContext _context; 
 
-        public ScheduleController(IScheduleRepository repository, UserManager<User> userManager)
+        public ScheduleController(
+            IScheduleRepository repository,
+            UserManager<User> userManager,
+            IFirebaseNotificationService notificationService,
+            ChildSpaceDbContext context)
             : base(userManager)
         {
             _repository = repository;
+            _notificationService = notificationService;
+            _context = context;
         }
 
         [HttpGet]
@@ -57,6 +68,9 @@ namespace childspace_backend.Controllers
         {
             var created = await _repository.CreateAsync(dto);
 
+            await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
+                "Нове заняття!", "У розкладі з'явилося нове заняття.");
+
             return CreatedAtAction(
                 nameof(GetById),
                 new { id = created.Id },
@@ -73,6 +87,9 @@ namespace childspace_backend.Controllers
             if (updated == null)
                 return NotFound();
 
+            await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
+                "Розклад оновлено", "Час або деталі заняття були змінені.");
+
             return Ok(updated);
         }
 
@@ -80,10 +97,15 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> Delete(Guid id)
         {
+            var schedule = await _repository.GetByIdAsync(id);
+            if (schedule == null) return NotFound();
+
             var deleted = await _repository.DeleteAsync(id);
 
-            if (!deleted)
-                return NotFound();
+            if (!deleted) return NotFound();
+
+            await NotifyAffectedUsers(schedule.GroupId, schedule.TeacherId,
+                "Заняття скасовано", "Одне із занять у розкладі було скасовано.");
 
             return NoContent();
         }
@@ -116,6 +138,34 @@ namespace childspace_backend.Controllers
         {
             var schedules = await _repository.GetByGroupIdAsync(groupId);
             return Ok(schedules);
+        }
+
+        private async Task NotifyAffectedUsers(Guid? groupId, Guid? teacherId, string title, string body)
+        {
+            var tokens = new List<string>();
+
+            if (teacherId.HasValue)
+            {
+                var teacher = await _userManager.FindByIdAsync(teacherId.Value.ToString());
+                if (!string.IsNullOrEmpty(teacher?.FcmToken))
+                    tokens.Add(teacher.FcmToken);
+            }
+
+            if (groupId.HasValue)
+            {
+                var parentTokens = await _context.GroupChildren
+                    .Where(gc => gc.GroupId == groupId.Value)
+                    .Select(gc => gc.Child.Parent.FcmToken)
+                    .Where(t => !string.IsNullOrEmpty(t))
+                    .ToListAsync();
+
+                tokens.AddRange(parentTokens);
+            }
+
+            foreach (var token in tokens.Distinct())
+            {
+                await _notificationService.SendNotificationAsync(token, title, body);
+            }
         }
     }
 }
