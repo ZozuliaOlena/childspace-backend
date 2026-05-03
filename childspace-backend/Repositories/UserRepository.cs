@@ -28,6 +28,29 @@ namespace childspace_backend.Repositories
             _roleManager = roleManager;
         }
 
+        private string GenerateSecurePassword()
+        {
+            var random = new Random();
+            var chars = "abcdefghijklmnopqrstuvwxyz";
+            var uppercase = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            var numbers = "0123456789";
+            var special = "!@#$%^&*";
+
+            var password = new char[8]; 
+            password[0] = uppercase[random.Next(uppercase.Length)];
+            password[1] = chars[random.Next(chars.Length)];
+            password[2] = numbers[random.Next(numbers.Length)];
+            password[3] = special[random.Next(special.Length)];
+
+            string allChars = chars + uppercase + numbers;
+            for (int i = 4; i < 8; i++)
+            {
+                password[i] = allChars[random.Next(allChars.Length)];
+            }
+
+            return new string(password.OrderBy(x => random.Next()).ToArray());
+        }
+
         public async Task<IEnumerable<UserDto>> GetAllAsync(Guid? centerId = null)
         {
             var query = _context.Users
@@ -79,7 +102,9 @@ namespace childspace_backend.Repositories
                 CenterId = dto.CenterId
             };
 
-            var result = await _userManager.CreateAsync(user, dto.Password);
+            string generatedPassword = GenerateSecurePassword();
+
+            var result = await _userManager.CreateAsync(user, generatedPassword);
 
             if (!result.Succeeded)
                 throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
@@ -113,10 +138,12 @@ namespace childspace_backend.Repositories
             var userDto = _mapper.Map<UserDto>(user);
             userDto.Roles = assignedRoles;
 
+            userDto.GeneratedPassword = generatedPassword;
+
             if (user.CenterId.HasValue)
             {
                 var center = await _context.Centers
-                    .AsNoTracking() 
+                    .AsNoTracking()
                     .FirstOrDefaultAsync(c => c.Id == user.CenterId.Value);
 
                 if (center != null)

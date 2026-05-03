@@ -13,6 +13,8 @@ namespace childspace_backend.Models.DTOs
         public Guid? CenterId { get; set; }
         public string CenterName { get; set; }
 
+        public string? GeneratedPassword { get; set; }
+
         public IList<string> Roles { get; set; } = new List<string>();
 
         [JsonIgnore]
