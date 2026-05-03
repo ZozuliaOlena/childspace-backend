@@ -292,5 +292,31 @@ namespace childspace_backend.Controllers
             if (birthDate.Date > today.AddYears(-age)) age--;
             return age;
         }
+
+        [HttpPost("{id:guid}/reset-password")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        public async Task<IActionResult> ResetPassword(Guid id)
+        {
+            var targetUser = await _userManager.FindByIdAsync(id.ToString());
+            if (targetUser == null) return NotFound(new { message = "Користувача не знайдено" });
+
+            if (!await CheckCenterPermissionsAsync(targetUser.CenterId))
+                return Forbid();
+
+            try
+            {
+                var newPassword = await _repository.ResetPasswordToGeneratedAsync(id);
+
+                return Ok(new
+                {
+                    message = "Пароль успішно скинуто",
+                    newPassword = newPassword
+                });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
     }
 }

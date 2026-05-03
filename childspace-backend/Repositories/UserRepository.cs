@@ -297,5 +297,23 @@ namespace childspace_backend.Repositories
 
             return userDtos;
         }
+
+        public async Task<string> ResetPasswordToGeneratedAsync(Guid userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                throw new Exception("Користувача не знайдено");
+
+            string newPassword = GenerateSecurePassword();
+
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+
+            var result = await _userManager.ResetPasswordAsync(user, resetToken, newPassword);
+
+            if (!result.Succeeded)
+                throw new Exception(string.Join(", ", result.Errors.Select(e => e.Description)));
+
+            return newPassword;
+        }
     }
 }
