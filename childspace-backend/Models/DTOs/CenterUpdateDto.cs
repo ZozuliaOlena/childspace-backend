@@ -1,5 +1,4 @@
-﻿using childspace_backend.Models.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace childspace_backend.Models.DTOs
 {
@@ -12,7 +11,5 @@ namespace childspace_backend.Models.DTOs
         public string Address { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-
-        public SubscriptionStatus SubscriptionStatus { get; set; }
     }
 }

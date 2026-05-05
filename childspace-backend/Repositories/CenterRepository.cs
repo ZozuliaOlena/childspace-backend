@@ -37,7 +37,6 @@ namespace childspace_backend.Repositories
             return _mapper.Map<IEnumerable<CenterDto>>(centers);
         }
 
-
         public async Task<CenterDto> GetByIdAsync(Guid id)
         {
             var center = await _context.Centers
@@ -59,8 +58,7 @@ namespace childspace_backend.Repositories
                 Name = dto.Name,
                 Address = dto.Address,
                 Phone = dto.Phone,
-                Email = dto.Email,
-                SubscriptionStatus = dto.SubscriptionStatus
+                Email = dto.Email
             };
 
             _context.Centers.Add(center);
@@ -79,7 +77,6 @@ namespace childspace_backend.Repositories
             center.Address = dto.Address;
             center.Phone = dto.Phone;
             center.Email = dto.Email;
-            center.SubscriptionStatus = dto.SubscriptionStatus;
 
             _context.Centers.Update(center);
             await _context.SaveChangesAsync();

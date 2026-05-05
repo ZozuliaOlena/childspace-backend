@@ -22,7 +22,7 @@ namespace childspace_backend.Repositories
             var query = _context.Materials
                 .Include(m => m.Subject)
                 .Include(m => m.Teacher)
-                .Include(m => m.Group) 
+                .Include(m => m.Group)
                 .AsQueryable();
 
             if (centerId.HasValue)
@@ -75,7 +75,6 @@ namespace childspace_backend.Repositories
                 Title = dto.Title,
                 FileUrl = fileUrl,
                 Description = dto.Description,
-                Type = dto.Type,
                 CreatedAt = DateTime.UtcNow,
                 CenterId = dto.CenterId
             };
@@ -96,7 +95,6 @@ namespace childspace_backend.Repositories
             material.Title = dto.Title;
             material.FileUrl = fileUrl;
             material.Description = dto.Description;
-            material.Type = dto.Type;
 
             await _context.SaveChangesAsync();
 

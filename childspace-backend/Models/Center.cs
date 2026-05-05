@@ -1,5 +1,4 @@
-﻿using childspace_backend.Models.Enums;
-using System.ComponentModel.DataAnnotations;
+﻿using System.ComponentModel.DataAnnotations;
 using System.Text.RegularExpressions;
 
 namespace childspace_backend.Models
@@ -16,8 +15,6 @@ namespace childspace_backend.Models
         public string Address { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-
-        public SubscriptionStatus SubscriptionStatus { get; set; }
 
         public virtual ICollection<User> Users { get; set; }
         public virtual ICollection<Child> Children { get; set; }

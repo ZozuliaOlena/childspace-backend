@@ -1,16 +1,14 @@
-﻿using childspace_backend.Models.Enums;
-
-namespace childspace_backend.Models.DTOs
+﻿namespace childspace_backend.Models.DTOs
 {
     public class MaterialCreateDto
     {
-        public Guid CenterId { get; set; } 
+        public Guid CenterId { get; set; }
 
         public Guid SubjectId { get; set; }
 
         public Guid TeacherId { get; set; }
 
-        public Guid? GroupId { get; set; } 
+        public Guid? GroupId { get; set; }
 
         public string Title { get; set; }
 
@@ -18,7 +16,5 @@ namespace childspace_backend.Models.DTOs
         public string? LinkUrl { get; set; }
 
         public string? Description { get; set; }
-
-        public MaterialType Type { get; set; }
     }
 }

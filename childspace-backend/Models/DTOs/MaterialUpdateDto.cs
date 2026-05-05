@@ -1,6 +1,4 @@
-﻿using childspace_backend.Models.Enums;
-
-namespace childspace_backend.Models.DTOs
+﻿namespace childspace_backend.Models.DTOs
 {
     public class MaterialUpdateDto
     {
@@ -11,7 +9,5 @@ namespace childspace_backend.Models.DTOs
         public string? LinkUrl { get; set; }
 
         public string? Description { get; set; }
-
-        public MaterialType Type { get; set; }
     }
 }

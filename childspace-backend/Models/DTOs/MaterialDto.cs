@@ -1,5 +1,4 @@
-﻿using childspace_backend.Models.Enums;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace childspace_backend.Models.DTOs
 {
@@ -25,7 +24,6 @@ namespace childspace_backend.Models.DTOs
         public string Title { get; set; }
         public string FileUrl { get; set; }
         public string? Description { get; set; }
-        public MaterialType Type { get; set; }
         public DateTime CreatedAt { get; set; }
     }
 }

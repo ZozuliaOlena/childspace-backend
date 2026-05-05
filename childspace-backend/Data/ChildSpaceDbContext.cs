@@ -30,14 +30,8 @@ namespace childspace_backend.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            modelBuilder.Entity<Center>()
-                .Property(c => c.SubscriptionStatus).HasConversion<string>();
-
             modelBuilder.Entity<Attendance>()
                 .Property(a => a.Status).HasConversion<string>();
-
-            modelBuilder.Entity<Material>()
-                .Property(m => m.Type).HasConversion<string>();
 
             modelBuilder.Entity<User>()
                 .HasIndex(u => u.Email).IsUnique();

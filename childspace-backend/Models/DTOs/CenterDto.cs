@@ -1,5 +1,4 @@
-﻿using childspace_backend.Models.Enums;
-using System.Text.Json.Serialization;
+﻿using System.Text.Json.Serialization;
 
 namespace childspace_backend.Models.DTOs
 {
@@ -11,8 +10,6 @@ namespace childspace_backend.Models.DTOs
         public string Address { get; set; }
         public string Phone { get; set; }
         public string Email { get; set; }
-
-        public SubscriptionStatus SubscriptionStatus { get; set; }
 
         [JsonIgnore]
         public List<UserDto> Users { get; set; }
