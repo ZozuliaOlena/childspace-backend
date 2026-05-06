@@ -215,5 +215,17 @@ namespace childspace_backend.Repositories
 
             return true;
         }
+
+        public async Task<bool> HasUnreadMessagesAsync(Guid userId)
+        {
+            return await _context.UserChats
+                .Where(uc => uc.UserId == userId)
+                .AnyAsync(uc => uc.Chat.UserChats
+                    .SelectMany(participant => participant.Messages)
+                    .Any(m =>
+                        m.UserChat.UserId != userId &&
+                        (uc.LastReadAt == null || m.CreatedAt > uc.LastReadAt)
+                    ));
+        }
     }
 }

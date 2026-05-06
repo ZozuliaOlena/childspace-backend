@@ -23,5 +23,7 @@ namespace childspace_backend.Repositories
         Task<IEnumerable<ChatDto>> GetUserChatsAsync(Guid userId);
 
         Task<bool> MarkChatAsReadAsync(Guid chatId, Guid userId);
+
+        Task<bool> HasUnreadMessagesAsync(Guid userId);
     }
 }

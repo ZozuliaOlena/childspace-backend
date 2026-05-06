@@ -141,5 +141,21 @@ namespace childspace_backend.Controllers
 
             return Ok(new { message = "Чат позначено як прочитаний" });
         }
+
+        [HttpGet("has-unread")]
+        [Authorize]
+        public async Task<IActionResult> CheckForUnreadMessages()
+        {
+            var userIdString = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+
+            if (!Guid.TryParse(userIdString, out var userId))
+            {
+                return Unauthorized(new { message = "Користувач не авторизований" });
+            }
+
+            bool hasAnyUnread = await _repository.HasUnreadMessagesAsync(userId);
+
+            return Ok(new { hasUnread = hasAnyUnread });
+        }
     }
 }
