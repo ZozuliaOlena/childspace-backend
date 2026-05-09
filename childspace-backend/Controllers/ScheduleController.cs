@@ -66,31 +66,45 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<ScheduleDto>> Create(ScheduleCreateDto dto)
         {
-            var created = await _repository.CreateAsync(dto);
+            try
+            {
+                var created = await _repository.CreateAsync(dto);
 
-            await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
-                "Нове заняття!", "У розкладі з'явилося нове заняття.");
+                await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
+                    "Нове заняття!", "У розкладі з'явилося нове заняття.");
 
-            return CreatedAtAction(
-                nameof(GetById),
-                new { id = created.Id },
-                created
-            );
+                return CreatedAtAction(
+                    nameof(GetById),
+                    new { id = created.Id },
+                    created
+                );
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpPut("{id:guid}")]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<ScheduleDto>> Update(Guid id, ScheduleUpdateDto dto)
         {
-            var updated = await _repository.UpdateAsync(id, dto);
+            try
+            {
+                var updated = await _repository.UpdateAsync(id, dto);
 
-            if (updated == null)
-                return NotFound();
+                if (updated == null)
+                    return NotFound();
 
-            await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
-                "Розклад оновлено", "Час або деталі заняття були змінені.");
+                await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
+                    "Розклад оновлено", "Час або деталі заняття були змінені.");
 
-            return Ok(updated);
+                return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         [HttpDelete("{id:guid}")]

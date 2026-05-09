@@ -78,6 +78,10 @@ namespace childspace_backend.Repositories
 
         public async Task<ScheduleDto> CreateAsync(ScheduleCreateDto dto)
         {
+            bool isBusy = await IsTeacherBusyAsync(dto.TeacherId, dto.StartTime, dto.EndTime);
+            if (isBusy)
+                throw new Exception("Цей вчитель вже має заняття в обраний проміжок часу.");
+
             var schedule = new Schedule
             {
                 Id = Guid.NewGuid(),
@@ -102,7 +106,11 @@ namespace childspace_backend.Repositories
             if (schedule == null)
                 return null;
 
-            schedule.GroupId = dto.GroupId; 
+            bool isBusy = await IsTeacherBusyAsync(dto.TeacherId, dto.StartTime, dto.EndTime, id);
+            if (isBusy)
+                throw new Exception("Цей вчитель вже має інше заняття в обраний проміжок часу.");
+
+            schedule.GroupId = dto.GroupId;
             schedule.TeacherId = dto.TeacherId;
             schedule.SubjectId = dto.SubjectId;
             schedule.RoomName = dto.RoomName;
@@ -112,6 +120,22 @@ namespace childspace_backend.Repositories
             await _context.SaveChangesAsync();
 
             return _mapper.Map<ScheduleDto>(schedule);
+        }
+
+        private async Task<bool> IsTeacherBusyAsync(Guid? teacherId, DateTime startTime, DateTime endTime, Guid? excludeScheduleId = null)
+        {
+            if (!teacherId.HasValue)
+                return false;
+
+            var query = _context.Schedules.Where(s => s.TeacherId == teacherId.Value);
+
+            if (excludeScheduleId.HasValue)
+            {
+                query = query.Where(s => s.Id != excludeScheduleId.Value);
+            }
+
+            return await query.AnyAsync(s =>
+                startTime < s.EndTime && endTime > s.StartTime);
         }
 
         public async Task<bool> DeleteAsync(Guid id)
