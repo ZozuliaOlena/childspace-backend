@@ -180,10 +180,12 @@ namespace childspace_backend.Repositories
 
                     HasUnreadMessages = _context.Messages
                         .Where(m => m.UserChat.ChatId == chat.Id)
-                        .Any(m => m.CreatedAt > (_context.UserChats
-                            .Where(uc => uc.ChatId == chat.Id && uc.UserId == userId)
-                            .Select(uc => uc.LastReadAt)
-                            .FirstOrDefault() ?? DateTime.MinValue))
+                        .Any(m =>
+                            m.UserChat.UserId != userId &&
+                            m.CreatedAt > (_context.UserChats
+                                .Where(uc => uc.ChatId == chat.Id && uc.UserId == userId)
+                                .Select(uc => uc.LastReadAt)
+                                .FirstOrDefault() ?? DateTime.MinValue))
                 })
                 .ToListAsync();
 
