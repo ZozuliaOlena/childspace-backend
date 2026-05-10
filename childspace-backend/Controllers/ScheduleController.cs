@@ -70,8 +70,12 @@ namespace childspace_backend.Controllers
             {
                 var created = await _repository.CreateAsync(dto);
 
+                var subject = await _context.Subjects.FindAsync(dto.SubjectId);
+                string subjectName = subject?.Name ?? "заняття";
+                string dateStr = dto.StartTime.ToLocalTime().ToString("dd.MM.yyyy о HH:mm");
+
                 await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
-                    "Нове заняття!", "У розкладі з'явилося нове заняття.");
+                    "Нове заняття!", $"У розкладі з'явилося нове заняття з предмету «{subjectName}» на {dateStr}.");
 
                 return CreatedAtAction(
                     nameof(GetById),
@@ -96,8 +100,12 @@ namespace childspace_backend.Controllers
                 if (updated == null)
                     return NotFound();
 
+                var subject = await _context.Subjects.FindAsync(dto.SubjectId);
+                string subjectName = subject?.Name ?? "заняття";
+                string dateStr = dto.StartTime.ToLocalTime().ToString("dd.MM.yyyy о HH:mm");
+
                 await NotifyAffectedUsers(dto.GroupId, dto.TeacherId,
-                    "Розклад оновлено", "Час або деталі заняття були змінені.");
+                    "Розклад оновлено", $"Заняття з предмету «{subjectName}» на {dateStr} було змінено.");
 
                 return Ok(updated);
             }
@@ -115,11 +123,13 @@ namespace childspace_backend.Controllers
             if (schedule == null) return NotFound();
 
             var deleted = await _repository.DeleteAsync(id);
-
             if (!deleted) return NotFound();
 
+            string subjectName = schedule.SubjectName ?? "заняття";
+            string dateStr = schedule.StartTime.ToLocalTime().ToString("dd.MM.yyyy о HH:mm");
+
             await NotifyAffectedUsers(schedule.GroupId, schedule.TeacherId,
-                "Заняття скасовано", "Одне із занять у розкладі було скасовано.");
+                "Заняття скасовано", $"Заняття з предмету «{subjectName}» на {dateStr} було скасовано.");
 
             return NoContent();
         }
