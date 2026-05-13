@@ -1,10 +1,12 @@
-﻿using childspace_backend.Models;
+﻿using childspace_backend.Data;
+using childspace_backend.Models;
 using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
 using childspace_backend.Utility;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace childspace_backend.Controllers
 {
@@ -15,14 +17,17 @@ namespace childspace_backend.Controllers
     {
         private readonly IMaterialRepository _repository;
         private readonly ICloudinaryRepository _cloudinaryRepository;
+        private readonly ChildSpaceDbContext _context;
 
         public MaterialController(
             IMaterialRepository repository,
             ICloudinaryRepository cloudinaryRepository,
-            UserManager<User> userManager) : base(userManager)
+            UserManager<User> userManager,
+            ChildSpaceDbContext context) : base(userManager)
         {
             _repository = repository;
             _cloudinaryRepository = cloudinaryRepository;
+            _context = context;
         }
 
         [HttpGet]
@@ -159,9 +164,24 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("subject/{subjectId:guid}")]
+        [Authorize]
         public async Task<ActionResult<IEnumerable<MaterialDto>>> GetBySubject(Guid subjectId)
         {
-            var materials = await _repository.GetBySubjectIdAsync(subjectId);
+            List<Guid>? allowedGroupIds = null;
+
+            if (User.IsInRole(StaticDetail.Role_Parent))
+            {
+                var user = await GetCurrentUserAsync();
+                if (user == null) return Unauthorized();
+
+                allowedGroupIds = await _context.GroupChildren
+                    .Where(gc => gc.Child.ParentId == user.Id)
+                    .Select(gc => gc.GroupId)
+                    .ToListAsync();
+            }
+
+            var materials = await _repository.GetBySubjectIdAsync(subjectId, allowedGroupIds);
+
             return Ok(materials);
         }
     }

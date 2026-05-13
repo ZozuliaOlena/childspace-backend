@@ -14,6 +14,6 @@ namespace childspace_backend.Repositories
 
         Task<bool> DeleteAsync(Guid id);
 
-        Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId);
+        Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId, List<Guid>? allowedGroupIds = null);
     }
 }

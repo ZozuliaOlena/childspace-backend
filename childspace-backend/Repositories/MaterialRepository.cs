@@ -114,29 +114,30 @@ namespace childspace_backend.Repositories
             return true;
         }
 
-        public async Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId)
+        public async Task<IEnumerable<MaterialDto>> GetBySubjectIdAsync(Guid subjectId, List<Guid>? allowedGroupIds = null)
         {
-            var materials = await _context.Materials
+            var query = _context.Materials
                 .Include(m => m.Subject)
                 .Include(m => m.Teacher)
+                .Include(m => m.Group)
                 .Where(m => m.SubjectId == subjectId)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (allowedGroupIds != null)
+            {
+                query = query.Where(m => m.GroupId == null || allowedGroupIds.Contains(m.GroupId.Value));
+            }
+
+            var materials = await query.OrderByDescending(m => m.CreatedAt).ToListAsync();
 
             var dtos = _mapper.Map<List<MaterialDto>>(materials);
 
             foreach (var dto in dtos)
             {
                 var original = materials.First(m => m.Id == dto.Id);
-
-                if (original.Teacher != null)
-                {
-                    dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
-                }
-
-                if (original.Subject != null)
-                {
-                    dto.SubjectName = original.Subject.Name;
-                }
+                if (original.Teacher != null) dto.TeacherName = $"{original.Teacher.FirstName} {original.Teacher.LastName}";
+                if (original.Subject != null) dto.SubjectName = original.Subject.Name;
+                if (original.Group != null) dto.GroupName = original.Group.Name;
             }
 
             return dtos;
