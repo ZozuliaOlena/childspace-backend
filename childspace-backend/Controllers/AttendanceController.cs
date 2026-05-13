@@ -1,11 +1,14 @@
 ﻿using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
+    [Authorize]
     public class AttendanceController : ControllerBase
     {
         private readonly IAttendanceRepository _repository;
@@ -16,6 +19,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<IEnumerable<AttendanceDto>>> GetAll()
         {
             var attendances = await _repository.GetAllAsync();
@@ -23,6 +27,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin},{StaticDetail.Role_Teacher}")]
         public async Task<ActionResult<AttendanceDto>> GetById(Guid id)
         {
             var attendance = await _repository.GetByIdAsync(id);
@@ -34,6 +39,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<AttendanceDto>> Create(AttendanceCreateDto dto)
         {
             var created = await _repository.CreateAsync(dto);
@@ -46,6 +52,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<AttendanceDto>> Update(Guid id, AttendanceUpdateDto dto)
         {
             var updated = await _repository.UpdateAsync(id, dto);
@@ -57,6 +64,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var deleted = await _repository.DeleteAsync(id);
@@ -68,6 +76,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("lesson/{lessonId:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin},{StaticDetail.Role_Teacher}")]
         public async Task<ActionResult<IEnumerable<AttendanceDto>>> GetByLessonId(Guid lessonId)
         {
             var attendances = await _repository.GetByLessonIdAsync(lessonId);
