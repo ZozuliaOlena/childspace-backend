@@ -17,17 +17,28 @@ namespace childspace_backend.Repositories
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<GroupDto>> GetAllAsync()
+        public async Task<IEnumerable<GroupDto>> GetAllAsync(Guid? teacherId = null, Guid? centerId = null)
         {
-            var groups = await _context.Groups
+            var query = _context.Groups
                 .Include(g => g.Center)
                 .Include(g => g.Teacher)
-                .Include(g => g.Subject) 
+                .Include(g => g.Subject)
                 .Include(g => g.GroupChildren)
                 .Include(g => g.Schedules)
                 .Include(g => g.Materials)
-                .ToListAsync();
+                .AsQueryable();
 
+            if (teacherId.HasValue)
+            {
+                query = query.Where(g => g.TeacherId == teacherId.Value);
+            }
+
+            if (centerId.HasValue)
+            {
+                query = query.Where(g => g.CenterId == centerId.Value);
+            }
+
+            var groups = await query.ToListAsync();
             return _mapper.Map<IEnumerable<GroupDto>>(groups);
         }
 

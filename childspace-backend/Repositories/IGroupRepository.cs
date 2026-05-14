@@ -4,7 +4,7 @@ namespace childspace_backend.Repositories
 {
     public interface IGroupRepository
     {
-        Task<IEnumerable<GroupDto>> GetAllAsync();
+        Task<IEnumerable<GroupDto>> GetAllAsync(Guid? teacherId = null, Guid? centerId = null);
 
         Task<GroupDto?> GetByIdAsync(Guid id);
 
