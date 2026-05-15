@@ -61,12 +61,46 @@ namespace childspace_backend.Controllers
         [RequestFormLimits(MultipartBodyLengthLimit = 104857600)]
         public async Task<ActionResult<MaterialDto>> Create([FromForm] MaterialCreateDto dto)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
+
+            if (User.IsInRole(StaticDetail.Role_Teacher))
+            {
+                dto.TeacherId = currentUser.Id;
+
+                if (dto.GroupId.HasValue)
+                {
+                    bool teachesGroup = await _context.Groups
+                        .AnyAsync(g => g.Id == dto.GroupId.Value && g.TeacherId == currentUser.Id && g.SubjectId == dto.SubjectId);
+
+                    if (!teachesGroup)
+                        return BadRequest(new { message = "Ви не викладаєте в цій групі, або обраний предмет не відповідає групі." });
+                }
+                else
+                {
+                    bool teachesSubject = await _context.Groups
+                        .AnyAsync(g => g.TeacherId == currentUser.Id && g.SubjectId == dto.SubjectId);
+
+                    if (!teachesSubject)
+                        return BadRequest(new { message = "Ви не викладаєте цей предмет, тому не можете додавати до нього загальні матеріали." });
+                }
+            }
+
+            if (currentUser.CenterId != null)
+            {
+                dto.CenterId = (Guid)currentUser.CenterId;
+            }
+            else if (dto.CenterId == Guid.Empty)
+            {
+                return BadRequest(new { message = "Не вказано ідентифікатор дитячого центру." });
+            }
+
             string finalUrl = "";
 
             if (dto.File != null)
             {
                 var uploadResult = await _cloudinaryRepository.UploadAsync(dto.File);
-                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження файлу" });
+                if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження файлу." });
                 finalUrl = uploadResult.Url;
             }
             else if (!string.IsNullOrEmpty(dto.LinkUrl))
@@ -75,17 +109,7 @@ namespace childspace_backend.Controllers
             }
             else
             {
-                return BadRequest(new { message = "Будь ласка, додайте файл або вставте посилання" });
-            }
-            var currentUser = await GetCurrentUserAsync();
-
-            if (currentUser?.CenterId != null)
-            {
-                dto.CenterId = (Guid)currentUser.CenterId;
-            }
-            else if (dto.CenterId == Guid.Empty)
-            {
-                return BadRequest(new { message = "Не вказано ідентифікатор дитячого центру" });
+                return BadRequest(new { message = "Будь ласка, додайте файл або вставте посилання." });
             }
 
             var created = await _repository.CreateAsync(dto, finalUrl);
