@@ -20,6 +20,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<ScheduleDto>> GetAllAsync(Guid? centerId = null)
         {
             var query = _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
@@ -54,6 +55,7 @@ namespace childspace_backend.Repositories
         public async Task<ScheduleDto?> GetByIdAsync(Guid id)
         {
             var schedule = await _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
@@ -127,7 +129,9 @@ namespace childspace_backend.Repositories
             if (!teacherId.HasValue)
                 return false;
 
-            var query = _context.Schedules.Where(s => s.TeacherId == teacherId.Value);
+            var query = _context.Schedules
+                .AsNoTracking()
+                .Where(s => s.TeacherId == teacherId.Value);
 
             if (excludeScheduleId.HasValue)
             {
@@ -154,6 +158,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<ScheduleDto>> GetByTeacherIdAsync(Guid teacherId)
         {
             var schedules = await _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)
@@ -190,6 +195,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<ScheduleDto>> GetByGroupIdAsync(Guid groupId)
         {
             var schedules = await _context.Schedules
+                .AsNoTracking()
                 .Include(s => s.Group)
                 .Include(s => s.Teacher)
                 .Include(s => s.Subject)

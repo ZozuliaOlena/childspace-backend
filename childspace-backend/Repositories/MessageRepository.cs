@@ -20,6 +20,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<MessageDto>> GetAllAsync()
         {
             var messages = await _context.Messages
+                .AsNoTracking()
                 .Include(m => m.UserChat)
                 .ToListAsync();
 
@@ -29,6 +30,7 @@ namespace childspace_backend.Repositories
         public async Task<MessageDto?> GetByIdAsync(Guid id)
         {
             var message = await _context.Messages
+                .AsNoTracking()
                 .Include(m => m.UserChat)
                 .FirstOrDefaultAsync(m => m.Id == id);
 
@@ -83,9 +85,7 @@ namespace childspace_backend.Repositories
         public async Task<IEnumerable<ChatMessageResponseDto>> GetMessagesByChatIdAsync(Guid chatId, int page = 1, int pageSize = 50)
         {
             var messages = await _context.Messages
-                .AsNoTracking() // 1. Вимикаємо відстеження (швидше і безпечніше для читання)
-                                //.Include(m => m.UserChat)
-                                //    .ThenInclude(uc => uc.User)
+                .AsNoTracking()
                 .Where(m => m.UserChat.ChatId == chatId)
                 .OrderByDescending(m => m.CreatedAt)
                 .Skip((page - 1) * pageSize)
