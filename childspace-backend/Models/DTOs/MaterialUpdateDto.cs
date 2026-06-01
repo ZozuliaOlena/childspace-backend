@@ -9,5 +9,7 @@
         public string? LinkUrl { get; set; }
 
         public string? Description { get; set; }
+
+        public Guid? GroupId { get; set; }
     }
 }

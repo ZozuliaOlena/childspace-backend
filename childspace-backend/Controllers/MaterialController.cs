@@ -131,6 +131,31 @@ namespace childspace_backend.Controllers
                 return Forbid();
             }
 
+            if (User.IsInRole(StaticDetail.Role_Teacher))
+            {
+                var currentUser = await GetCurrentUserAsync();
+
+                if (dto.GroupId != existingMaterial.GroupId)
+                {
+                    if (dto.GroupId.HasValue)
+                    {
+                        bool teachesGroup = await _context.Groups
+                            .AnyAsync(g => g.Id == dto.GroupId.Value && g.TeacherId == currentUser.Id && g.SubjectId == existingMaterial.SubjectId);
+
+                        if (!teachesGroup)
+                            return BadRequest(new { message = "Ви не можете перенести матеріал у групу, де ви не викладаєте цей предмет." });
+                    }
+                    else
+                    {
+                        bool teachesSubject = await _context.Groups
+                            .AnyAsync(g => g.TeacherId == currentUser.Id && g.SubjectId == existingMaterial.SubjectId);
+
+                        if (!teachesSubject)
+                            return BadRequest(new { message = "Ви не можете зробити матеріал загальним, оскільки не викладаєте цей предмет." });
+                    }
+                }
+            }
+
             string newFileUrl = existingMaterial.FileUrl;
             bool urlChanged = false;
 

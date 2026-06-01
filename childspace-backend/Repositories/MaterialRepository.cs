@@ -96,6 +96,7 @@ namespace childspace_backend.Repositories
             material.Title = dto.Title;
             material.FileUrl = fileUrl;
             material.Description = dto.Description;
+            material.GroupId = dto.GroupId;
 
             await _context.SaveChangesAsync();
 
