@@ -108,6 +108,9 @@ namespace childspace_backend.Controllers
 
                 await _hubContext.Clients.Group(dto.ChatId.ToString()).SendAsync("ReceiveMessage", message);
 
+                var chat = await _chatRepository.GetByIdAsync(dto.ChatId);
+                string chatName = chat?.Name;
+
                 var participants = (await _chatRepository.GetChatParticipantsAsync(dto.ChatId)).ToList();
 
                 foreach (var participant in participants)
@@ -118,8 +121,21 @@ namespace childspace_backend.Controllers
 
                         if (receiver != null && !string.IsNullOrEmpty(receiver.FcmToken))
                         {
-                            string title = $"Нове повідомлення від {sender.FirstName}";
-                            await _firebaseService.SendNotificationAsync(receiver.FcmToken, title, dto.Content);
+                            string title;
+                            string body;
+
+                            if (!string.IsNullOrWhiteSpace(chatName))
+                            {
+                                title = $"Чат «{chatName}»";
+                                body = $"{sender.FirstName}: {dto.Content}";
+                            }
+                            else
+                            {
+                                title = $"Нове повідомлення від {sender.FirstName}";
+                                body = dto.Content;
+                            }
+
+                            await _firebaseService.SendNotificationAsync(receiver.FcmToken, title, body);
                         }
                     }
                 }
