@@ -6,5 +6,7 @@
         public string? Description { get; set; }
 
         public IFormFile? Photo { get; set; }
+
+        public bool DeletePhoto { get; set; }
     }
 }

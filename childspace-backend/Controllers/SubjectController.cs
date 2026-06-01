@@ -99,6 +99,17 @@ namespace childspace_backend.Controllers
                     catch (Exception ex) { Console.WriteLine($"Failed to delete old photo: {ex.Message}"); }
                 }
             }
+            else if (dto.DeletePhoto && !string.IsNullOrEmpty(existingSubject.PhotoUrl))
+            {
+                var oldPublicId = CloudinaryHelper.ExtractPublicIdFromUrl(existingSubject.PhotoUrl);
+                if (!string.IsNullOrEmpty(oldPublicId))
+                {
+                    try { await _cloudinaryRepository.DeleteAsync(oldPublicId); }
+                    catch (Exception ex) { Console.WriteLine($"Failed to delete old photo: {ex.Message}"); }
+                }
+
+                newPhotoUrl = null;
+            }
 
             var updated = await _repository.UpdateAsync(id, dto, newPhotoUrl);
             return Ok(updated);
