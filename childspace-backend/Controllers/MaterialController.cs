@@ -154,7 +154,7 @@ namespace childspace_backend.Controllers
                 if (!string.IsNullOrEmpty(oldPublicId))
                 {
                     try { await _cloudinaryRepository.DeleteAsync(oldPublicId); }
-                    catch (Exception ex) { Console.WriteLine($"Failed to delete old file from Cloudinary: {ex.Message}"); }
+                    catch (Exception ex) { Console.WriteLine($"Помилка під час видалення старого файлу з Cloudinary: {ex.Message}"); }
                 }
             }
 
@@ -181,7 +181,7 @@ namespace childspace_backend.Controllers
             if (!string.IsNullOrEmpty(publicId))
             {
                 try { await _cloudinaryRepository.DeleteAsync(publicId); }
-                catch (Exception ex) { Console.WriteLine($"Failed to delete file from Cloudinary: {ex.Message}"); }
+                catch (Exception ex) { Console.WriteLine($"Помилка під час видалення файлу з Cloudinary: {ex.Message}"); }
             }
 
             return NoContent();
