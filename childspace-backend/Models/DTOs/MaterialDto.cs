@@ -22,7 +22,7 @@ namespace childspace_backend.Models.DTOs
         public string TeacherName { get; set; }
 
         public string Title { get; set; }
-        public string FileUrl { get; set; }
+        public string? FileUrl { get; set; }
         public string? Description { get; set; }
         public DateTime CreatedAt { get; set; }
     }

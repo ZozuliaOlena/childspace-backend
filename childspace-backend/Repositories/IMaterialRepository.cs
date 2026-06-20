@@ -8,9 +8,8 @@ namespace childspace_backend.Repositories
 
         Task<MaterialDto?> GetByIdAsync(Guid id);
 
-        Task<MaterialDto> CreateAsync(MaterialCreateDto dto, string fileUrl);
-
-        Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto, string fileUrl);
+        Task<MaterialDto> CreateAsync(MaterialCreateDto dto, string? fileUrl);
+        Task<MaterialDto?> UpdateAsync(Guid id, MaterialUpdateDto dto, string? fileUrl);
 
         Task<bool> DeleteAsync(Guid id);
 

@@ -95,7 +95,7 @@ namespace childspace_backend.Controllers
                 return BadRequest(new { message = "Не вказано ідентифікатор дитячого центру." });
             }
 
-            string finalUrl = "";
+            string? finalUrl = null;
 
             if (dto.File != null)
             {
@@ -107,9 +107,10 @@ namespace childspace_backend.Controllers
             {
                 finalUrl = dto.LinkUrl;
             }
-            else
+
+            if (string.IsNullOrWhiteSpace(finalUrl) && string.IsNullOrWhiteSpace(dto.Description))
             {
-                return BadRequest(new { message = "Будь ласка, додайте файл або вставте посилання." });
+                return BadRequest(new { message = "Будь ласка, додайте файл, посилання або напишіть текстове завдання." });
             }
 
             var created = await _repository.CreateAsync(dto, finalUrl);
@@ -156,8 +157,8 @@ namespace childspace_backend.Controllers
                 }
             }
 
-            string newFileUrl = existingMaterial.FileUrl;
-            bool urlChanged = false;
+            string? newFileUrl = existingMaterial.FileUrl;
+            bool urlChangedOrDeleted = false;
 
             if (dto.File != null)
             {
@@ -165,15 +166,25 @@ namespace childspace_backend.Controllers
                 if (uploadResult == null) return BadRequest(new { message = "Помилка завантаження нового файлу" });
 
                 newFileUrl = uploadResult.Url;
-                urlChanged = true;
+                urlChangedOrDeleted = true;
+            }
+            else if (dto.LinkUrl == "")
+            {
+                newFileUrl = null;
+                urlChangedOrDeleted = true;
             }
             else if (!string.IsNullOrEmpty(dto.LinkUrl))
             {
                 newFileUrl = dto.LinkUrl;
-                urlChanged = true;
+                urlChangedOrDeleted = true;
             }
 
-            if (urlChanged)
+            if (string.IsNullOrWhiteSpace(newFileUrl) && string.IsNullOrWhiteSpace(dto.Description))
+            {
+                return BadRequest(new { message = "Матеріал не може бути порожнім. Додайте файл, посилання або текстове завдання." });
+            }
+
+            if (urlChangedOrDeleted && !string.IsNullOrEmpty(existingMaterial.FileUrl))
             {
                 var oldPublicId = CloudinaryHelper.ExtractPublicIdFromUrl(existingMaterial.FileUrl);
                 if (!string.IsNullOrEmpty(oldPublicId))
