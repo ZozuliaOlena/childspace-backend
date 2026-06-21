@@ -4,7 +4,7 @@ namespace childspace_backend.Repositories
 {
     public interface ITrialRequestRepository
     {
-        Task<IEnumerable<TrialRequestDto>> GetAllAsync();
+        Task<IEnumerable<TrialRequestDto>> GetAllAsync(Guid? centerId = null);
 
         Task<TrialRequestDto?> GetByIdAsync(Guid id);
 

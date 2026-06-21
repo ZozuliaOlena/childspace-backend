@@ -17,11 +17,18 @@ namespace childspace_backend.Repositories
             _mapper = mapper;
         }
 
-        public async Task<IEnumerable<TrialRequestDto>> GetAllAsync()
+        public async Task<IEnumerable<TrialRequestDto>> GetAllAsync(Guid? centerId = null)
         {
-            var requests = await _context.TrialRequests
+            var query = _context.TrialRequests
                 .Include(r => r.Center)
-                .ToListAsync();
+                .AsQueryable();
+
+            if (centerId.HasValue)
+            {
+                query = query.Where(r => r.CenterId == centerId.Value);
+            }
+
+            var requests = await query.ToListAsync();
 
             return _mapper.Map<IEnumerable<TrialRequestDto>>(requests);
         }

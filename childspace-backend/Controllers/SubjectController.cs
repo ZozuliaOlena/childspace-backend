@@ -28,7 +28,7 @@ namespace childspace_backend.Controllers
         [AllowAnonymous]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetAll([FromQuery] Guid? centerId)
         {
-            Guid? filterCenterId = centerId; 
+            Guid? filterCenterId = centerId;
 
             if (User.Identity != null && User.Identity.IsAuthenticated && !User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
@@ -56,8 +56,24 @@ namespace childspace_backend.Controllers
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<SubjectDto>> Create([FromForm] SubjectCreateDto dto)
         {
+            var currentUser = await GetCurrentUserAsync();
+            if (currentUser == null) return Unauthorized();
+
+            if (User.IsInRole(StaticDetail.Role_CenterAdmin))
+            {
+                if (currentUser.CenterId == null)
+                    return BadRequest(new { message = "Ваш профіль не прив'язаний до жодного центру." });
+
+                dto.CenterId = (Guid)currentUser.CenterId;
+            }
+            else if (User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                if (dto.CenterId == Guid.Empty)
+                    return BadRequest(new { message = "Адміністратор системи має вказати CenterId для нового предмета." });
+            }
+
             if (!await CheckCenterPermissionsAsync(dto.CenterId))
-                return Forbid();
+                return StatusCode(403, new { message = "У вас немає доступу до цього дитячого центру." });
 
             string? photoUrl = null;
 
@@ -81,7 +97,7 @@ namespace childspace_backend.Controllers
             if (existingSubject == null) return NotFound();
 
             if (!await CheckCenterPermissionsAsync(existingSubject.CenterId))
-                return Forbid();
+                return StatusCode(403, new { message = "У вас немає доступу до цього дитячого центру." });
 
             string? newPhotoUrl = existingSubject.PhotoUrl;
 
@@ -123,7 +139,7 @@ namespace childspace_backend.Controllers
             if (existingSubject == null) return NotFound();
 
             if (!await CheckCenterPermissionsAsync(existingSubject.CenterId))
-                return Forbid();
+                return StatusCode(403, new { message = "У вас немає доступу до цього дитячого центру." });
 
             var deleted = await _repository.DeleteAsync(id);
             if (!deleted) return NotFound();
@@ -139,7 +155,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("my-center")]
-        [Authorize(Roles = StaticDetail.Role_Teacher)]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin},{StaticDetail.Role_Teacher}")]
         public async Task<ActionResult<IEnumerable<SubjectDto>>> GetMyCenterSubjects()
         {
             var user = await GetCurrentUserAsync();

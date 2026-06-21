@@ -1,24 +1,42 @@
-﻿using childspace_backend.Models.DTOs;
+﻿using childspace_backend.Models;
+using childspace_backend.Models.DTOs;
 using childspace_backend.Repositories;
+using childspace_backend.Utility;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace childspace_backend.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class GroupChildController : ControllerBase
+    [Authorize]
+    public class GroupChildController : BaseController 
     {
         private readonly IGroupChildRepository _repository;
 
-        public GroupChildController(IGroupChildRepository repository)
+        public GroupChildController(
+            IGroupChildRepository repository,
+            UserManager<User> userManager) : base(userManager)
         {
             _repository = repository;
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GroupChildDto>>> GetAll()
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin},{StaticDetail.Role_Teacher}")]
+        public async Task<ActionResult<IEnumerable<GroupChildDto>>> GetAll([FromQuery] Guid? centerId)
         {
-            var groupChildren = await _repository.GetAllAsync();
+            Guid? filterCenterId = centerId;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var user = await GetCurrentUserAsync();
+                if (user == null || user.CenterId == null) return Forbid();
+
+                filterCenterId = user.CenterId;
+            }
+
+            var groupChildren = await _repository.GetAllAsync(filterCenterId);
             return Ok(groupChildren);
         }
 
@@ -34,6 +52,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<GroupChildDto>> Create(GroupChildCreateDto dto)
         {
             var created = await _repository.CreateAsync(dto);
@@ -46,6 +65,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpPut("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult<GroupChildDto>> Update(Guid id, GroupChildUpdateDto dto)
         {
             var updated = await _repository.UpdateAsync(id, dto);
@@ -57,6 +77,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("{id:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> Delete(Guid id)
         {
             var deleted = await _repository.DeleteAsync(id);
@@ -68,6 +89,7 @@ namespace childspace_backend.Controllers
         }
 
         [HttpDelete("~/api/Group/{groupId:guid}/child/{childId:guid}")]
+        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
         public async Task<ActionResult> DeleteByGroupAndChild(Guid groupId, Guid childId)
         {
             var deleted = await _repository.DeleteByGroupAndChildAsync(groupId, childId);

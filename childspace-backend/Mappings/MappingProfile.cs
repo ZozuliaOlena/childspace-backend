@@ -42,7 +42,8 @@ namespace childspace_backend.Mappings
 
             CreateMap<UserChat, UserChatDto>();
 
-            CreateMap<Group, GroupDto>();
+            CreateMap<Group, GroupDto>()
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject.Name));
         }
     }
 }

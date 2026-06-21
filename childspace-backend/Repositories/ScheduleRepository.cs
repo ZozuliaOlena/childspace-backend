@@ -98,7 +98,7 @@ namespace childspace_backend.Repositories
             _context.Schedules.Add(schedule);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ScheduleDto>(schedule);
+            return await GetByIdAsync(schedule.Id) ?? throw new Exception("Помилка при завантаженні розкладу.");
         }
 
         public async Task<ScheduleDto?> UpdateAsync(Guid id, ScheduleUpdateDto dto)
@@ -121,7 +121,7 @@ namespace childspace_backend.Repositories
 
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<ScheduleDto>(schedule);
+            return await GetByIdAsync(id);
         }
 
         private async Task<bool> IsTeacherBusyAsync(Guid? teacherId, DateTime startTime, DateTime endTime, Guid? excludeScheduleId = null)

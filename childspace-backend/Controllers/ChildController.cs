@@ -24,9 +24,22 @@ namespace childspace_backend.Controllers
 
         [HttpGet]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin},{StaticDetail.Role_Teacher}")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] Guid? centerId)
         {
-            var children = await _childRepository.GetAllAsync();
+            Guid? filterCenterId = centerId;
+
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
+            {
+                var user = await GetCurrentUserAsync();
+
+                if (user == null || user.CenterId == null)
+                    return Forbid();
+
+                filterCenterId = user.CenterId;
+            }
+
+            var children = await _childRepository.GetAllAsync(filterCenterId);
+
             return Ok(children);
         }
 

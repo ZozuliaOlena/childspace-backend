@@ -74,7 +74,7 @@ namespace childspace_backend.Repositories
             _context.Groups.Add(group);
             await _context.SaveChangesAsync();
 
-            return _mapper.Map<GroupDto>(group);
+            return await GetByIdAsync(group.Id) ?? throw new Exception("Групу не знайдено після створення.");
         }
 
         public async Task<GroupDto?> UpdateAsync(Guid id, GroupUpdateDto dto)
