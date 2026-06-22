@@ -168,7 +168,7 @@ namespace childspace_backend.Controllers
                 newFileUrl = uploadResult.Url;
                 urlChangedOrDeleted = true;
             }
-            else if (dto.LinkUrl == "")
+            else if (Request.Form.ContainsKey("LinkUrl") && string.IsNullOrEmpty(Request.Form["LinkUrl"]))
             {
                 newFileUrl = null;
                 urlChangedOrDeleted = true;
