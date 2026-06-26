@@ -56,7 +56,8 @@ namespace childspace_backend.Controllers
                 id = user.Id,
                 email = user.Email,
                 firstName = user.FirstName,
-                roles
+                roles,
+                centerId = user.CenterId
             });
         }
 
@@ -95,7 +96,8 @@ namespace childspace_backend.Controllers
                     firstName = user.FirstName,
                     userName = user.UserName,
                     email = user.Email,
-                    roles
+                    roles,
+                    centerId = user.CenterId 
                 });
             }
 
