@@ -41,15 +41,11 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
+        [AllowAnonymous] 
         public async Task<IActionResult> Get(Guid id)
         {
-            if (!await CheckCenterPermissionsAsync(id))
-            {
-                return Forbid();
-            }
-
             var center = await _repository.GetByIdAsync(id);
+
             if (center == null)
                 return NotFound(new { message = "Center not found" });
 
