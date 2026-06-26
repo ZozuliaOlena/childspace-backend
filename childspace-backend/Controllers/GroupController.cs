@@ -21,25 +21,29 @@ namespace childspace_backend.Controllers
         }
 
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<GroupDto>>> GetAll()
+        public async Task<ActionResult<IEnumerable<GroupDto>>> GetAll([FromQuery] Guid? centerId)
         {
             var user = await GetCurrentUserAsync();
             if (user == null) return Unauthorized();
 
             Guid? filterTeacherId = null;
-            Guid? filterCenterId = null;
+            Guid? filterCenterId = centerId;
 
-            if (User.IsInRole(StaticDetail.Role_Teacher))
+            if (!User.IsInRole(StaticDetail.Role_SuperAdmin))
             {
-                filterTeacherId = user.Id;
-            }
-            else if (User.IsInRole(StaticDetail.Role_CenterAdmin))
-            {
-                filterCenterId = user.CenterId;
-            }
-            else if (User.IsInRole(StaticDetail.Role_Parent))
-            {
-                return Forbid();
+                if (User.IsInRole(StaticDetail.Role_Teacher))
+                {
+                    filterTeacherId = user.Id;
+                    filterCenterId = user.CenterId;
+                }
+                else if (User.IsInRole(StaticDetail.Role_CenterAdmin))
+                {
+                    filterCenterId = user.CenterId;
+                }
+                else if (User.IsInRole(StaticDetail.Role_Parent))
+                {
+                    return Forbid();
+                }
             }
 
             var groups = await _repository.GetAllAsync(filterTeacherId, filterCenterId);

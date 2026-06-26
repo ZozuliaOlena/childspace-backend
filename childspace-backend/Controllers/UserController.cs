@@ -25,7 +25,7 @@ namespace childspace_backend.Controllers
 
         [HttpGet]
         [Authorize(Roles = $"{StaticDetail.Role_SuperAdmin},{StaticDetail.Role_CenterAdmin}")]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] string? role)
         {
             Guid? filterCenterId = null;
 
@@ -37,7 +37,17 @@ namespace childspace_backend.Controllers
                 if (filterCenterId == null) return Forbid();
             }
 
-            var users = await _repository.GetAllAsync(filterCenterId);
+            IEnumerable<UserDto> users;
+
+            if (!string.IsNullOrEmpty(role))
+            {
+                users = await _repository.GetUsersByRoleAsync(role, filterCenterId);
+            }
+            else
+            {
+                users = await _repository.GetAllAsync(filterCenterId);
+            }
+
             return Ok(users);
         }
 
